@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Elijah Menu</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
@@ -327,25 +329,19 @@
   .counter { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--text-2); }
 
   /* =====================================================================
-     LOADER (startInjection) — plays the Elijah intro
+     LOADER (startInjection) — simple progress bar
      ===================================================================== */
   #loader {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
     background: radial-gradient(ellipse at center, rgba(0,0,0,.7), rgba(0,0,0,.92));
-    transition: opacity .5s ease;
+    transition: opacity .25s ease;
     z-index: 50;
   }
   #loader.fade { opacity: 0; }
-  .ld { width: 560px; animation: ldIn .5s var(--ease) both; }
+  .ld { width: 360px; animation: ldIn .5s var(--ease) both; }
   @keyframes ldIn { from { opacity: 0; transform: scale(.96); } }
-  .ld-video {
-    position: relative; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden;
-    border: 1px solid var(--line-2);
-    box-shadow: 0 40px 100px rgba(0,0,0,.8);
-  }
-  .ld-video img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .ld-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 18px; }
+  .ld-row { display: flex; justify-content: space-between; align-items: baseline; }
   .ld-row h1 { font-size: 13px; font-weight: 900; letter-spacing: 6px; }
   .ld-row span { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--text-2); }
   .ld-bar { margin-top: 10px; height: 3px; border-radius: 3px; background: var(--line); overflow: hidden; }
@@ -483,7 +479,6 @@
 <!-- ===================== LOADER ===================== -->
 <div id="loader" class="hidden">
   <div class="ld">
-    <div class="ld-video"><img id="ld-img" alt=""></div>
     <div class="ld-row"><h1>ELIJAH</h1><span id="ld-pct">0%</span></div>
     <div class="ld-bar"><div id="ld-bar"></div></div>
     <div class="ld-status" id="ld-status">Injecting</div>
@@ -837,15 +832,15 @@
   /* ---- banner pictures: names must match the "Menu Banner" list in Elijah Dui.lua ----
      To add one: upload the image next to index.html, add a line here AND the same name in the Lua list. */
   const BANNERS = {
-    "Default": "intro.gif",
-    "Demons":  "demons.png",
-    "Prodigy": "prodigy.gif"
+    "Default": "intro.webp",
+    "Demons":  "demons.jpg",
+    "Prodigy": "prodigy.webp"
   };
-  let bannerSrc = "intro.gif";
+  let bannerSrc = "intro.webp";
   function setBanner(name) {
-    bannerSrc = BANNERS[name] || (/^https?:\/\//.test(String(name)) ? String(name) : "intro.gif");
+    bannerSrc = BANNERS[name] || (/^https?:\/\//.test(String(name)) ? String(name) : "intro.webp");
     const img = $("banner-img");
-    img.onerror = () => { img.onerror = null; bannerSrc = "intro.gif"; img.src = "intro.gif"; }; // missing file → default
+    img.onerror = () => { img.onerror = null; bannerSrc = "intro.webp"; img.src = "intro.webp"; }; // missing file → default
     img.src = bannerSrc;
   }
 
@@ -873,11 +868,10 @@
   let loaderRun = 0;
   function startInjection() {
     const run = ++loaderRun;
-    const loader = $("loader"), bar = $("ld-bar"), pct = $("ld-pct"), status = $("ld-status"), img = $("ld-img");
+    const loader = $("loader"), bar = $("ld-bar"), pct = $("ld-pct"), status = $("ld-status");
     const steps = ["Injecting", "Bypassing", "Loading modules", "Building interface", "Ready"];
-    img.src = "intro.gif";
     loader.classList.remove("hidden", "fade");
-    const start = performance.now(), dur = 4700;
+    const start = performance.now(), dur = 1500;
     let lastPct = -1, lastStep = "";
     (function tick(now) {
       if (run !== loaderRun) return;
@@ -894,8 +888,7 @@
         setTimeout(() => {
           if (run !== loaderRun) return;
           loader.classList.add("hidden");
-          img.removeAttribute("src");   // stop the loader GIF completely
-        }, 500);
+        }, 250);
       }
     })();
   }
@@ -1129,7 +1122,7 @@
       send("showUI");
       handle({ action: "showNotification", type: "success", title: "Elijah", desc: "Injected successfully. Press PageUp to toggle.", duration: 4500 });
       handle({ action: "displayBinds", visible: true, binds: [{ keyLabel: "F5", label: "Godmode", type: "checkbox", checked: true }, { keyLabel: "F6", label: "Noclip", type: "checkbox", checked: false }, { keyLabel: "X", label: "Heal", type: "button" }] });
-    }, 5300);
+    }, 1800);
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "PageUp") { open = !open; open ? send("showUI") : handle({ action: "showUI", visible: false }); return; }
