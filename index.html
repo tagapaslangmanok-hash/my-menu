@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elijah Menu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<style>
+  /* =====================================================================
+     COLORS — black & white. Change these lines to restyle everything.
+     ===================================================================== */
+  :root {
+    --bg:          #0a0a0a;
+    --bg-2:        #111111;
+    --bg-3:        #171717;
+    --line:        rgba(255,255,255,0.08);
+    --line-2:      rgba(255,255,255,0.16);
+    --line-3:      rgba(255,255,255,0.32);
+    --text:        #ffffff;
+    --text-2:      #b4b4b4;
+    --text-3:      #6e6e6e;
+    --text-4:      #424242;
+    --hl:          #ffffff;   /* highlighted row */
+    --hl-text:     #000000;
+
+    --menu-w:      400px;
+    --row-h:       40px;
+    --rows:        9;         /* rows visible before the list scrolls */
+    --ease:        cubic-bezier(.2,.8,.2,1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: transparent;
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+    color: var(--text);
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+  .hidden { display: none !important; }
+  .mono { font-family: "JetBrains Mono", monospace; }
+  .kc {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 18px; height: 18px; padding: 0 5px;
+    font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: 700;
+    color: var(--text-2);
+    background: var(--bg-3);
+    border: 1px solid var(--line-2); border-bottom-width: 2px;
+    border-radius: 4px;
+  }
+
+  /* =====================================================================
+     MENU
+     ===================================================================== */
+  #menu {
+    position: absolute;
+    width: var(--menu-w);
+    background: var(--bg);
+    border: 1px solid var(--line-2);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,.6),
+      0 30px 80px rgba(0,0,0,.75),
+      0 0 40px rgba(255,255,255,.03);
+    transition: opacity .2s var(--ease), transform .2s var(--ease);
+    contain: layout paint;
+    will-change: opacity, transform;
+    --ty: 0px;
+    transform: translate(0, var(--ty)) scale(1);
+  }
+  #menu.closed { opacity: 0; transform: translate(-10px, var(--ty)) scale(.97); pointer-events: none; }
+  /* fully removed from rendering once the close animation ends (stops the GIF, zero GPU/CPU) */
+  #menu.gone { display: none; }
+  #menu.x-left   { left: 40px; }
+  #menu.x-center { left: calc(50% - var(--menu-w) / 2); }
+  #menu.x-right  { right: 40px; }
+  #menu.y-top    { top: 40px; }
+  #menu.y-middle { top: 50%; --ty: -50%; }
+  #menu.y-bottom { bottom: 40px; }
+
+  /* top shine line */
+  #menu::before {
+    content: ""; position: absolute; top: 0; left: 10%; right: 10%; height: 1px; z-index: 5;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
+  }
+
+  /* ---------- banner ---------- */
+  .banner {
+    position: relative;
+    width: 100%; aspect-ratio: 16 / 9;
+    background: #000;
+    overflow: hidden;
+  }
+  .banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .banner::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,10,10,0) 45%, rgba(10,10,10,.85) 82%, var(--bg) 100%);
+    pointer-events: none;
+  }
+  .banner-top {
+    position: absolute; top: 12px; left: 14px; right: 14px; z-index: 2;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 9px;
+    font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+    background: rgba(0,0,0,.7); border: 1px solid var(--line-2); border-radius: 20px;
+  }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; box-shadow: 0 0 8px #fff; }
+  .banner-bottom {
+    position: absolute; left: 18px; right: 18px; bottom: 12px; z-index: 2;
+  }
+  .path {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--text-3);
+    white-space: nowrap; overflow: hidden;
+  }
+  .path i { font-size: 9px; color: var(--text-4); }
+  .title {
+    margin-top: 3px;
+    font-size: 22px; font-weight: 900; letter-spacing: .5px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-shadow: 0 2px 12px rgba(0,0,0,.8);
+  }
+
+  /* ---------- categories ---------- */
+  .cats-wrap {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .cats {
+    position: relative; flex: 1;
+    display: flex;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 3px;
+    overflow: hidden;
+  }
+  .cat-ind {
+    position: absolute; top: 3px; bottom: 3px; left: 0;
+    background: var(--hl); border-radius: 5px;
+    transition: transform .22s var(--ease), width .22s var(--ease);
+    will-change: transform;
+  }
+  .cat {
+    position: relative; z-index: 1;
+    flex: 1; min-width: 0;
+    padding: 6px 4px;
+    text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--text-3);
+    transition: color .2s;
+  }
+  .cat.active { color: var(--hl-text); }
+
+  /* ---------- list ---------- */
+  .viewport {
+    position: relative;
+    max-height: calc(var(--row-h) * var(--rows) + 16px);
+    overflow: hidden;
+  }
+  .track {
+    position: relative;
+    padding: 8px;
+    transition: transform .18s var(--ease);
+    will-change: transform;
+  }
+  .hl {
+    position: absolute; left: 8px; right: 8px; top: 0;
+    height: var(--row-h);
+    background: var(--hl);
+    border-radius: 6px;
+    box-shadow: 0 4px 18px rgba(255,255,255,.12);
+    transition: transform .14s var(--ease), height .14s var(--ease), opacity .15s;
+    will-change: transform;
+    z-index: 0;
+  }
+  .hl::before {
+    content: ""; position: absolute; left: -8px; top: 25%; bottom: 25%; width: 3px;
+    background: #fff; border-radius: 0 3px 3px 0;
+    box-shadow: 0 0 10px #fff;
+  }
+  .rows { position: relative; z-index: 1; contain: layout style; }
+
+  .row {
+    height: var(--row-h);
+    display: flex; align-items: center; gap: 11px;
+    padding: 0 12px;
+    font-size: 13px; font-weight: 500;
+    color: var(--text);
+    border-radius: 6px;
+    transition: color .12s;
+  }
+  .row .ic {
+    width: 26px; height: 26px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: var(--text-2);
+    background: var(--bg-3); border: 1px solid var(--line);
+    border-radius: 6px;
+    transition: all .12s;
+  }
+  .row .lb { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .rt { display: flex; align-items: center; gap: 8px; color: var(--text-3); font-size: 12px; flex-shrink: 0; }
+  .row.disabled { opacity: .3; }
+
+  .row.active { color: var(--hl-text); font-weight: 600; }
+  .row.active .ic { background: #000; color: #fff; border-color: #000; }
+  .row.active .rt { color: rgba(0,0,0,.6); }
+
+  .rows.enter .row, .rows.enter .divider { animation: rowIn .28s var(--ease) both; }
+  @keyframes rowIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+
+  .divider {
+    height: 30px;
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 12px 0;
+    font-size: 9px; font-weight: 800; letter-spacing: 2.4px; text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .divider::before { content: ""; width: 4px; height: 4px; background: var(--text-3); transform: rotate(45deg); }
+  .divider::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line-2), transparent); }
+
+  /* sub menu arrow */
+  .arrow { font-size: 13px; transition: transform .15s; }
+  .row.active .arrow { transform: translateX(3px); color: #000; }
+
+  /* toggle */
+  .tg {
+    width: 34px; height: 18px; border-radius: 10px;
+    background: var(--bg-3); border: 1px solid var(--line-2);
+    position: relative; transition: all .18s var(--ease);
+  }
+  .tg::after {
+    content: ""; position: absolute; top: 2px; left: 2px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--text-3);
+    transition: all .18s var(--ease);
+  }
+  .tg.on { background: #fff; border-color: #fff; }
+  .tg.on::after { left: 18px; background: #000; }
+  .row.active .tg { background: rgba(0,0,0,.08); border-color: rgba(0,0,0,.3); }
+  .row.active .tg::after { background: rgba(0,0,0,.35); }
+  .row.active .tg.on { background: #000; border-color: #000; }
+  .row.active .tg.on::after { background: #fff; }
+
+  /* scrollable */
+  .sc { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .sc-v { display: flex; align-items: center; gap: 5px; font-weight: 600; font-size: 12px; max-width: 150px; }
+  .sc-v span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sc-v i { font-size: 10px; opacity: .55; }
+  .dots { display: flex; gap: 3px; }
+  .dots b { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .25; }
+  .dots b.on { opacity: 1; width: 10px; border-radius: 2px; }
+  .sc-n { font-size: 9px; opacity: .6; font-family: "JetBrains Mono", monospace; }
+
+  /* slider */
+  .sl { display: flex; align-items: center; gap: 9px; }
+  .sl-t { width: 84px; height: 4px; border-radius: 3px; background: var(--line-2); position: relative; }
+  .sl-f { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: #fff; transition: width .12s var(--ease); }
+  .sl-k {
+    position: absolute; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%;
+    background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.15);
+    transition: left .12s var(--ease);
+  }
+  .row.active .sl-t { background: rgba(0,0,0,.15); }
+  .row.active .sl-f, .row.active .sl-k { background: #000; }
+  .row.active .sl-k { box-shadow: 0 0 0 3px rgba(0,0,0,.15); }
+  .sl-n {
+    min-width: 40px; text-align: center;
+    padding: 2px 6px; border-radius: 4px;
+    font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 700;
+    background: var(--bg-3); border: 1px solid var(--line);
+    color: var(--text-2);
+  }
+  .row.active .sl-n { background: #000; color: #fff; border-color: #000; }
+
+  /* scrollbar */
+  .sbar { position: absolute; right: 3px; top: 10px; bottom: 10px; width: 2px; border-radius: 2px; background: var(--line); }
+  .sbar div { position: absolute; left: 0; right: 0; background: var(--line-3); border-radius: 2px; transition: top .18s var(--ease), height .18s; }
+
+  /* ---------- info ---------- */
+  .info { border-top: 1px solid var(--line); background: var(--bg-2); }
+  .desc {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 12px 16px;
+    font-size: 12px; line-height: 1.5; color: var(--text-2);
+    min-height: 44px;
+  }
+  .desc i { font-size: 14px; color: var(--text-3); margin-top: 1px; }
+  .meta {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px;
+    padding: 0 16px 12px;
+  }
+  .meta .m { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .meta .k { font-size: 9px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--text-3); }
+  .meta .v { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meta .bar { height: 3px; border-radius: 2px; background: var(--line-2); overflow: hidden; margin-top: 2px; }
+  .meta .bar div { height: 100%; background: #fff; }
+
+  /* ---------- footer ---------- */
+  .footer {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--line);
+    font-size: 10px; color: var(--text-3);
+  }
+  .hints { display: flex; gap: 10px; align-items: center; }
+  .hints span { display: flex; align-items: center; gap: 4px; }
+  .user { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .avatar {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff; color: #000; font-weight: 900; font-size: 11px;
+  }
+  .user-t { min-width: 0; line-height: 1.25; }
+  .user-t b { display: block; color: var(--text); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
+  .user-t span { font-size: 9px; letter-spacing: .5px; }
+  .counter { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--text-2); }
+
+  /* =====================================================================
+     LOADER (startInjection) — plays the Elijah intro
+     ===================================================================== */
+  #loader {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,.7), rgba(0,0,0,.92));
+    transition: opacity .5s ease;
+    z-index: 50;
+  }
+  #loader.fade { opacity: 0; }
+  .ld { width: 560px; animation: ldIn .5s var(--ease) both; }
+  @keyframes ldIn { from { opacity: 0; transform: scale(.96); } }
+  .ld-video {
+    position: relative; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--line-2);
+    box-shadow: 0 40px 100px rgba(0,0,0,.8);
+  }
+  .ld-video img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ld-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 18px; }
+  .ld-row h1 { font-size: 13px; font-weight: 900; letter-spacing: 6px; }
+  .ld-row span { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--text-2); }
+  .ld-bar { margin-top: 10px; height: 3px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  .ld-bar div { height: 100%; width: 100%; background: #fff; transform: scaleX(0); transform-origin: left; will-change: transform; }
+  .ld-status { margin-top: 10px; font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-3); }
+
+  /* =====================================================================
+     NOTIFICATIONS
+     ===================================================================== */
+  #notifs {
+    position: absolute; top: 28px; right: 28px; z-index: 40;
+    display: flex; flex-direction: column; gap: 10px; align-items: flex-end;
+  }
+  .nt {
+    width: 320px; position: relative; overflow: hidden;
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 13px 14px 15px;
+    background: var(--bg); border: 1px solid var(--line-2); border-radius: 9px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.6);
+    animation: ntIn .35s var(--ease) both;
+  }
+  .nt-ic {
+    width: 30px; height: 30px; flex-shrink: 0; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    background: #fff; color: #000;
+  }
+  .nt.error .nt-ic { background: transparent; color: #fff; border: 1.5px solid #fff; }
+  .nt.info  .nt-ic { background: var(--bg-3); color: #fff; border: 1px solid var(--line-2); }
+  .nt-t { font-size: 12px; font-weight: 800; letter-spacing: .5px; }
+  .nt-d { font-size: 12px; color: var(--text-2); margin-top: 2px; line-height: 1.45; }
+  .nt-p { position: absolute; left: 0; bottom: 0; width: 100%; height: 2px; background: #fff; transform-origin: left; }
+  .nt.out { animation: ntOut .25s ease forwards; }
+  @keyframes ntIn  { from { opacity: 0; transform: translateX(30px) scale(.97); } }
+  @keyframes ntOut { to   { opacity: 0; transform: translateX(30px); } }
+
+  /* =====================================================================
+     KEYBOARD INPUT
+     ===================================================================== */
+  #keyboard {
+    position: absolute; inset: 0; z-index: 45;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.55);
+  }
+  .kb {
+    width: 440px; padding: 22px;
+    background: var(--bg); border: 1px solid var(--line-2); border-radius: 12px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.8);
+    animation: ldIn .25s var(--ease) both;
+  }
+  .kb-h { display: flex; align-items: center; gap: 10px; }
+  .kb-h i { font-size: 18px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: #fff; color: #000; border-radius: 8px; }
+  .kb-h div { font-size: 14px; font-weight: 800; }
+  .kb-h span { display: block; font-size: 10px; color: var(--text-3); letter-spacing: 1px; text-transform: uppercase; font-weight: 600; margin-top: 1px; }
+  .kb-in {
+    margin-top: 16px; padding: 13px 15px;
+    background: var(--bg-2); border: 1px solid var(--line-3); border-radius: 8px;
+    font-family: "JetBrains Mono", monospace; font-size: 15px;
+    min-height: 48px; white-space: pre; overflow: hidden;
+  }
+  .kb-in::after { content: ""; display: inline-block; width: 2px; height: 17px; background: #fff; vertical-align: -3px; margin-left: 2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .kb-f { display: flex; gap: 14px; margin-top: 14px; font-size: 10px; color: var(--text-3); }
+  .kb-f span { display: flex; align-items: center; gap: 5px; }
+
+  /* =====================================================================
+     SIDE PANELS
+     ===================================================================== */
+  #panels {
+    position: absolute; right: 28px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 12px; width: 250px;
+  }
+  .pn {
+    background: var(--bg); border: 1px solid var(--line-2); border-radius: 10px; overflow: hidden;
+    box-shadow: 0 16px 40px rgba(0,0,0,.5);
+    animation: ntIn .3s var(--ease) both;
+  }
+  .pn-h {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+    font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+    border-bottom: 1px solid var(--line); background: var(--bg-2);
+  }
+  .pn-h i { font-size: 13px; }
+  .pn-h .ct { margin-left: auto; font-family: "JetBrains Mono", monospace; color: var(--text-3); letter-spacing: 0; }
+  .pn ul { list-style: none; padding: 6px; }
+  .pn li {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border-radius: 5px; font-size: 12px;
+  }
+  .pn li .n { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pn li .s { font-size: 9px; font-weight: 800; letter-spacing: 1px; padding: 2px 6px; border-radius: 4px; color: var(--text-3); border: 1px solid var(--line-2); }
+  .pn li.on .s { background: #fff; color: #000; border-color: #fff; }
+  .pn li .d { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--text-3); }
+  .pn .empty { padding: 10px; font-size: 11px; color: var(--text-3); text-align: center; }
+
+  /* =====================================================================
+     FREECAM
+     ===================================================================== */
+  .xh { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; }
+  .xh::before, .xh::after { content: ""; position: absolute; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
+  .xh::before { left: 10px; top: 0; width: 2px; height: 22px; }
+  .xh::after  { top: 10px; left: 0; height: 2px; width: 22px; }
+  #freecam {
+    position: absolute; left: 50%; bottom: 56px; transform: translateX(-50%);
+    min-width: 440px; padding: 14px 18px;
+    background: var(--bg); border: 1px solid var(--line-2); border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.6);
+    text-align: center;
+  }
+  .fc-t { font-size: 9px; font-weight: 800; letter-spacing: 3px; color: var(--text-3); text-transform: uppercase; }
+  .fc-o { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 10px; }
+  .fc-o span { font-size: 12px; color: var(--text-4); white-space: nowrap; }
+  .fc-o span.c {
+    font-size: 14px; font-weight: 800; color: #000;
+    background: #fff; padding: 6px 14px; border-radius: 6px;
+  }
+  .fc-s { margin-top: 10px; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); }
+  .fc-s b { color: #fff; }
+  .fc-k { display: flex; justify-content: center; gap: 14px; margin-top: 12px; font-size: 10px; color: var(--text-3); }
+  .fc-k span { display: flex; align-items: center; gap: 5px; }
+
+  /* FOV circle */
+  #fov {
+    position: absolute; left: 50%; top: 50%;
+    border: 1px solid rgba(255,255,255,.7); border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.4), inset 0 0 0 1px rgba(0,0,0,.4);
+    transform: translate(-50%, -50%);
+    transition: width .15s, height .15s;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== LOADER ===================== -->
+<div id="loader" class="hidden">
+  <div class="ld">
+    <div class="ld-video"><img id="ld-img" alt=""></div>
+    <div class="ld-row"><h1>ELIJAH</h1><span id="ld-pct">0%</span></div>
+    <div class="ld-bar"><div id="ld-bar"></div></div>
+    <div class="ld-status" id="ld-status">Injecting</div>
+  </div>
+</div>
+
+<!-- ===================== MENU ===================== -->
+<div id="menu" class="closed gone x-left y-top">
+  <div class="banner">
+    <img id="banner-img" alt="" decoding="async">
+    <div class="banner-top">
+      <span class="badge"><span class="dot"></span>Online</span>
+      <span class="badge" id="exp-badge">N/A</span>
+    </div>
+    <div class="banner-bottom">
+      <div class="path" id="path"></div>
+      <div class="title" id="title">Main Menu</div>
+    </div>
+  </div>
+
+  <div class="cats-wrap hidden" id="cats-wrap">
+    <span class="kc">Q</span>
+    <div class="cats" id="cats"><div class="cat-ind" id="cat-ind"></div></div>
+    <span class="kc">E</span>
+  </div>
+
+  <div class="viewport" id="viewport">
+    <div class="track" id="track">
+      <div class="hl" id="hl"></div>
+      <div class="rows" id="rows"></div>
+    </div>
+    <div class="sbar" id="sbar"><div id="thumb"></div></div>
+  </div>
+
+  <div class="info">
+    <div class="desc"><i class="ph ph-info"></i><span id="desc"></span></div>
+    <div class="meta hidden" id="meta"></div>
+  </div>
+
+  <div class="footer">
+    <div class="user">
+      <div class="avatar" id="avatar">E</div>
+      <div class="user-t"><b id="user">Elijah</b><span id="exp">Expires N/A</span></div>
+    </div>
+    <div class="hints">
+      <span><span class="kc">↑↓</span></span>
+      <span><span class="kc">↵</span></span>
+      <span><span class="kc">⌫</span></span>
+    </div>
+    <div class="counter" id="counter">0/0</div>
+  </div>
+</div>
+
+<div id="notifs"></div>
+
+<!-- ===================== KEYBOARD ===================== -->
+<div id="keyboard" class="hidden">
+  <div class="kb">
+    <div class="kb-h"><i class="ph ph-keyboard"></i><div><span>Input</span><div id="kb-title">Input</div></div></div>
+    <div class="kb-in" id="kb-value"></div>
+    <div class="kb-f">
+      <span><span class="kc">ENTER</span> Confirm</span>
+      <span><span class="kc">ESC</span> Cancel</span>
+      <span><span class="kc">⌫</span> Delete</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PANELS ===================== -->
+<div id="panels">
+  <div class="pn hidden" id="binds-panel">
+    <div class="pn-h"><i class="ph ph-keyboard"></i>Keybinds<span class="ct" id="bind-count">0</span></div>
+    <ul id="binds"></ul>
+  </div>
+  <div class="pn hidden" id="specs-panel">
+    <div class="pn-h"><i class="ph ph-eye"></i>Spectators<span class="ct" id="spec-count">0</span></div>
+    <ul id="specs"></ul>
+  </div>
+</div>
+
+<!-- ===================== FREECAM ===================== -->
+<div id="freecam-wrap" class="hidden">
+  <div class="xh"></div>
+  <div id="freecam">
+    <div class="fc-t">Freecam</div>
+    <div class="fc-o" id="fc-opts"></div>
+    <div class="fc-s" id="fc-sub"></div>
+    <div class="fc-k">
+      <span><span class="kc">SCROLL</span> Mode</span>
+      <span><span class="kc">Q</span><span class="kc">E</span> Change</span>
+      <span><span class="kc">LMB</span> Use</span>
+    </div>
+  </div>
+</div>
+
+<div id="fov" class="hidden"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* Freecam lists — must match Elijah Dui.lua (lines 184-188) */
+  const FC_OPTIONS  = ["Default", "Teleport", "Shoot Weapon", "Shoot Vehicle", "Map Destroyer", "Spawn Object", "Helicopter Attack"];
+  const FC_WEAPONS  = ["WEAPON_APPISTOL", "WEAPON_PISTOL", "WEAPON_SMG", "WEAPON_ASSAULTRIFLE", "WEAPON_RPG", "WEAPON_PERMKILL", "WEAPON_AIRSTRIKE_ROCKET"];
+  const FC_VEHICLES = ["Adder", "Zentorno", "Comet", "Banshee", "Trash", "Dump"];
+  const FC_MAPS     = ["City", "Docks", "Playa Vista", "Mountain", "Pink Cage", "Vespucci", "Mega Mall", "Platform", "Big Ring", "Tube", "Dessert", "Goal", "Big Statue 2", "House"];
+  const FC_OBJECTS  = ["Big Tires", "Dome", "Black Surface", "Spinning Object", "Arena Fire", "Landmine", "Big Wheels", "Cnt Arena", "Arena Skull", "Arena Bomb", "Waste Rims"];
+
+  const $ = (id) => document.getElementById(id);
+
+  const state = {
+    elements: [], index: 0, path: [], categories: null, categoryIndex: 0,
+    offset: 0, lastView: null,
+    fc: { option: 0, weapon: 1, vehicle: 1, map: 1, object: 1 }
+  };
+
+  const esc = (s) => String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+  /* Lua tables sometimes arrive as {"1":..,"2":..} — turn them into arrays */
+  function arr(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    if (typeof v === "object") return Object.keys(v).sort((a, b) => a - b).map((k) => v[k]);
+    return [];
+  }
+
+  function fmtNum(n, step) {
+    n = Number(n) || 0;
+    const s = String(step == null ? "" : step);
+    let dec = s.includes(".") ? Math.min(s.split(".")[1].replace(/0+$/, "").length, 2) : (n % 1 ? 2 : 0);
+    return n.toFixed(dec);
+  }
+
+  /* default icon per element type when the Lua gives none */
+  function defaultIcon(el) {
+    switch (el.type) {
+      case "subMenu": return "ph ph-folder-simple";
+      case "checkbox": return "ph ph-toggle-left";
+      case "scrollable": case "scrollable-checkbox": return "ph ph-arrows-left-right";
+      case "slider": case "slider-checkbox": return "ph ph-sliders-horizontal";
+      default: return "ph ph-lightning";
+    }
+  }
+
+  /* ===================== MENU RENDER ===================== */
+  function controlHTML(el) {
+    const t = el.type;
+    const tg = `<div class="tg${el.checked ? " on" : ""}"></div>`;
+    if (t === "subMenu") return `<i class="ph ph-caret-right arrow"></i>`;
+    if (t === "checkbox") return tg;
+    if (t === "scrollable" || t === "scrollable-checkbox") {
+      const vals = arr(el.values);
+      const n = vals.length || 1;
+      const v = Math.max(1, Math.min(n, el.value || 1));
+      let dots = "";
+      if (n > 1 && n <= 8) {
+        dots = `<div class="dots">${vals.map((_, i) => `<b class="${i === v - 1 ? "on" : ""}"></b>`).join("")}</div>`;
+      } else if (n > 8) {
+        dots = `<div class="sc-n">${v}/${n}</div>`;
+      }
+      return `<div class="sc"><div class="sc-v"><i class="ph ph-caret-left"></i><span>${esc(vals[v - 1])}</span><i class="ph ph-caret-right"></i></div>${dots}</div>` +
+             (t === "scrollable-checkbox" ? tg : "");
+    }
+    if (t === "slider" || t === "slider-checkbox") {
+      const min = el.min != null ? Number(el.min) : 0;
+      const max = el.max != null ? Number(el.max) : 100;
+      const val = el.value != null ? Number(el.value) : min;
+      const pct = Math.max(0, Math.min(100, max > min ? ((val - min) / (max - min)) * 100 : 0));
+      return `<div class="sl"><div class="sl-t"><div class="sl-f" style="width:${pct}%"></div><div class="sl-k" style="left:${pct}%"></div></div>` +
+             `<span class="sl-n">${fmtNum(val, el.step)}</span></div>` + (t === "slider-checkbox" ? tg : "");
+    }
+    return "";
+  }
+
+  function rowHTML(el, i) {
+    if (!el) return "";
+    if (el.type === "divider") return `<div class="divider" data-i="${i}">${esc(el.label)}</div>`;
+    const icon = el.icon && String(el.icon).trim() ? el.icon : defaultIcon(el);
+    const cls = "row" + (i === state.index ? " active" : "") + (el.disabled ? " disabled" : "");
+    return `<div class="${cls}" data-i="${i}"><div class="ic"><i class="${esc(icon)}"></i></div>` +
+           `<span class="lb">${esc(el.label)}</span><span class="rt">${controlHTML(el)}</span></div>`;
+  }
+
+  function renderRows(animate) {
+    const rows = $("rows");
+    const els = state.elements;
+    rows.innerHTML = els.length ? els.map(rowHTML).join("") : `<div class="divider">Nothing here</div>`;
+    if (animate) {
+      rows.classList.remove("enter");
+      void rows.offsetWidth;
+      rows.querySelectorAll(".row, .divider").forEach((r, k) => { r.style.animationDelay = Math.min(k, 12) * 18 + "ms"; });
+      rows.classList.add("enter");
+    } else {
+      rows.classList.remove("enter");
+    }
+    moveHighlight(!animate);
+    renderInfo();
+  }
+
+  function moveHighlight(smooth) {
+    const hl = $("hl"), track = $("track"), vp = $("viewport");
+    const active = $("rows").querySelector(".row.active");
+    if (!smooth) hl.style.transition = "none";
+    if (active) {
+      hl.style.opacity = "1";
+      hl.style.transform = `translateY(${active.offsetTop + 8}px)`;
+      hl.style.height = active.offsetHeight + "px";
+    } else {
+      hl.style.opacity = "0";
+    }
+    if (!smooth) { void hl.offsetWidth; hl.style.transition = ""; }
+
+    // keep active row inside the viewport
+    const contentH = track.scrollHeight;
+    const viewH = vp.clientHeight;
+    if (active) {
+      const top = active.offsetTop;
+      const bottom = top + active.offsetHeight + 16;
+      if (top < state.offset) state.offset = Math.max(0, top - 8);
+      else if (bottom > state.offset + viewH) state.offset = bottom - viewH;
+      if (state.index <= 1) state.offset = 0;
+    }
+    state.offset = Math.max(0, Math.min(state.offset, Math.max(0, contentH - viewH)));
+    if (!smooth) track.style.transition = "none";
+    track.style.transform = `translateY(${-state.offset}px)`;
+    if (!smooth) { void track.offsetWidth; track.style.transition = ""; }
+
+    // scrollbar
+    const sbar = $("sbar"), thumb = $("thumb");
+    if (contentH <= viewH + 2) { sbar.style.display = "none"; }
+    else {
+      sbar.style.display = "block";
+      const barH = sbar.clientHeight;
+      const h = Math.max(24, (viewH / contentH) * barH);
+      thumb.style.height = h + "px";
+      thumb.style.top = (state.offset / (contentH - viewH)) * (barH - h) + "px";
+    }
+  }
+
+  function renderInfo() {
+    const el = state.elements[state.index];
+    $("desc").textContent = (el && (el.desc || el.label)) || "Select an option";
+
+    let total = 0, pos = 0;
+    state.elements.forEach((e, i) => {
+      if (e && e.type !== "divider") { total++; if (i <= state.index) pos = total; }
+    });
+    $("counter").textContent = `${pos}/${total}`;
+
+    const meta = $("meta");
+    const md = el ? arr(el.metaData) : [];
+    if (md.length) {
+      meta.innerHTML = md.map((m) => {
+        let bar = "";
+        const num = Number(m.value);
+        if (/health/i.test(m.key) && !isNaN(num)) bar = `<div class="bar"><div style="width:${Math.max(0, Math.min(100, (num - 100)))}%"></div></div>`;
+        if (/armou?r/i.test(m.key) && !isNaN(num)) bar = `<div class="bar"><div style="width:${Math.max(0, Math.min(100, num))}%"></div></div>`;
+        return `<div class="m"><span class="k">${esc(m.key)}</span><span class="v">${esc(m.value)}</span>${bar}</div>`;
+      }).join("");
+      meta.classList.remove("hidden");
+    } else {
+      meta.classList.add("hidden");
+    }
+  }
+
+  function renderHeader() {
+    const p = arr(state.path);
+    const crumbs = ["Elijah"].concat(p.slice(0, -1));
+    $("path").innerHTML = crumbs.map(esc).join(`<i class="ph ph-caret-right"></i>`);
+    $("title").textContent = p.length ? p[p.length - 1] : "Main Menu";
+
+    const cats = arr(state.categories);
+    const wrap = $("cats-wrap"), box = $("cats");
+    if (cats.length) {
+      box.querySelectorAll(".cat").forEach((c) => c.remove());
+      cats.forEach((c, i) => {
+        const d = document.createElement("div");
+        d.className = "cat" + (i === state.categoryIndex ? " active" : "");
+        d.textContent = c.label;
+        box.appendChild(d);
+      });
+      const wasHidden = wrap.classList.contains("hidden");
+      wrap.classList.remove("hidden");
+      const ind = $("cat-ind");
+      const act = box.querySelectorAll(".cat")[state.categoryIndex];
+      if (act) {
+        if (wasHidden) ind.style.transition = "none";
+        ind.style.width = act.offsetWidth + "px";
+        ind.style.transform = `translateX(${act.offsetLeft}px)`;
+        if (wasHidden) { void ind.offsetWidth; ind.style.transition = ""; }
+      }
+    } else {
+      wrap.classList.add("hidden");
+    }
+  }
+
+  function applyMenuData(d) {
+    if (d.elements !== undefined) state.elements = arr(d.elements);
+    if (d.index !== undefined) state.index = Number(d.index) || 0;
+    if (d.path !== undefined) state.path = arr(d.path);
+    if (d.categories !== undefined) {
+      state.categories = d.categories;
+      state.categoryIndex = Number(d.categoryIndex) || 0;
+    } else if (d.elements !== undefined) {
+      state.categories = null;
+    }
+    // animate rows only when the page/tab changes, not when a value changes
+    const view = arr(state.path).join("/") + "#" + (state.categories ? state.categoryIndex : "-") + "#" + state.elements.length;
+    const changed = view !== state.lastView;
+    if (changed) { state.offset = 0; pending.animate = true; }
+    state.lastView = view;
+    pending.rows = true;
+    schedule();
+  }
+
+  function setHover(i) {
+    state.index = Number(i) || 0;
+    pending.hover = true;
+    schedule();
+  }
+
+  /* ---- render batching: many messages in one frame = one render ---- */
+  const pending = { rows: false, animate: false, hover: false };
+  let frameQueued = false;
+  function schedule() {
+    if (frameQueued) return;
+    frameQueued = true;
+    requestAnimationFrame(flush);
+  }
+  function flush() {
+    frameQueued = false;
+    if ($("menu").classList.contains("gone")) { return; } // hidden: render when opened
+    if (pending.rows) {
+      renderHeader();
+      renderRows(pending.animate);
+    } else if (pending.hover) {
+      const rows = $("rows");
+      const prev = rows.querySelector(".row.active");
+      const next = rows.querySelector(`.row[data-i="${state.index}"]`);
+      if (prev !== next) {
+        if (prev) prev.classList.remove("active");
+        if (next) next.classList.add("active");
+      }
+      moveHighlight(true);
+      renderInfo();
+    }
+    pending.rows = pending.animate = pending.hover = false;
+  }
+
+  /* ---- open / close: the menu is fully removed from rendering when closed ---- */
+  let closeTimer = null;
+  function openMenu() {
+    const m = $("menu");
+    clearTimeout(closeTimer);
+    const img = $("banner-img");
+    if (!img.getAttribute("src")) img.src = "intro.gif";
+    if (m.classList.contains("gone")) {
+      m.classList.remove("gone");
+      void m.offsetWidth;            // start the fade-in from the closed state
+    }
+    m.classList.remove("closed");
+  }
+  function closeMenu() {
+    const m = $("menu");
+    m.classList.add("closed");
+    clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => { if (m.classList.contains("closed")) m.classList.add("gone"); }, 220);
+  }
+
+  /* ===================== LOADER ===================== */
+  let loaderRun = 0;
+  function startInjection() {
+    const run = ++loaderRun;
+    const loader = $("loader"), bar = $("ld-bar"), pct = $("ld-pct"), status = $("ld-status"), img = $("ld-img");
+    const steps = ["Injecting", "Bypassing", "Loading modules", "Building interface", "Ready"];
+    img.src = "intro.gif";
+    loader.classList.remove("hidden", "fade");
+    const start = performance.now(), dur = 4700;
+    let lastPct = -1, lastStep = "";
+    (function tick(now) {
+      if (run !== loaderRun) return;
+      const p = Math.min(1, ((now || performance.now()) - start) / dur);
+      const e = 1 - Math.pow(1 - p, 2);
+      bar.style.transform = `scaleX(${e})`;
+      const n = Math.round(e * 100);
+      if (n !== lastPct) { pct.textContent = n + "%"; lastPct = n; }
+      const s = steps[Math.min(steps.length - 1, Math.floor(p * (steps.length - 1) + (p >= 1 ? 1 : 0)))];
+      if (s !== lastStep) { status.textContent = s; lastStep = s; }
+      if (p < 1) requestAnimationFrame(tick);
+      else {
+        loader.classList.add("fade");
+        setTimeout(() => {
+          if (run !== loaderRun) return;
+          loader.classList.add("hidden");
+          img.removeAttribute("src");   // stop the loader GIF completely
+        }, 500);
+      }
+    })();
+  }
+
+  /* ===================== NOTIFICATIONS ===================== */
+  function notify(d) {
+    const type = ["success", "error", "info"].includes(d.type) ? d.type : "info";
+    const icons = { success: "ph-fill ph-check-circle", error: "ph-fill ph-x-circle", info: "ph-fill ph-info" };
+    const dur = Number(d.duration) || 3000;
+    const n = document.createElement("div");
+    n.className = "nt " + type;
+    n.innerHTML = `<div class="nt-ic"><i class="${icons[type]}"></i></div>` +
+                  `<div><div class="nt-t">${esc(d.title || "Elijah")}</div><div class="nt-d">${esc(d.desc)}</div></div>` +
+                  `<div class="nt-p"></div>`;
+    $("notifs").appendChild(n);
+    const bar = n.querySelector(".nt-p");
+    bar.style.transition = `transform ${dur}ms linear`;
+    requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.transform = "scaleX(0)"; }));
+    setTimeout(() => { n.classList.add("out"); setTimeout(() => n.remove(), 260); }, dur);
+    const all = $("notifs").children;
+    while (all.length > 5) all[0].remove();
+  }
+
+  /* ===================== PANELS ===================== */
+  function showBinds(d) {
+    const panel = $("binds-panel");
+    if (!d.visible) { panel.classList.add("hidden"); return; }
+    const binds = arr(d.binds);
+    $("bind-count").textContent = binds.length;
+    $("binds").innerHTML = binds.length ? binds.map((b) => {
+      const toggle = /checkbox/.test(b.type || "");
+      const s = toggle ? `<span class="s">${b.checked ? "ON" : "OFF"}</span>` : "";
+      return `<li class="${toggle && b.checked ? "on" : ""}"><span class="kc">${esc(b.keyLabel || b.key)}</span><span class="n">${esc(b.label)}</span>${s}</li>`;
+    }).join("") : `<div class="empty">No keybinds set</div>`;
+    panel.classList.remove("hidden");
+  }
+
+  function showSpectators(d) {
+    const panel = $("specs-panel");
+    if (!d.visible) { panel.classList.add("hidden"); return; }
+    const specs = arr(d.spectators);
+    $("spec-count").textContent = specs.length;
+    $("specs").innerHTML = specs.length ? specs.map((s) =>
+      `<li><span class="kc">${esc(s.id)}</span><span class="n">${esc(s.name)}</span><span class="d">${esc(s.distance)}</span></li>`
+    ).join("") : `<div class="empty">Nobody is spectating you</div>`;
+    panel.classList.remove("hidden");
+  }
+
+  /* ===================== FREECAM ===================== */
+  function renderFreecam() {
+    const fc = state.fc, n = FC_OPTIONS.length;
+    const at = (k) => FC_OPTIONS[((fc.option + k) % n + n) % n];
+    $("fc-opts").innerHTML = `<span>${esc(at(-1))}</span><span class="c">${esc(at(0))}</span><span>${esc(at(1))}</span>`;
+    const cur = at(0);
+    let sub = "";
+    if (cur === "Shoot Weapon")  sub = `<i class="ph ph-crosshair"></i>Weapon <b>${esc(FC_WEAPONS[fc.weapon - 1] || fc.weapon)}</b>`;
+    if (cur === "Shoot Vehicle") sub = `<i class="ph ph-car"></i>Vehicle <b>${esc(FC_VEHICLES[fc.vehicle - 1] || fc.vehicle)}</b>`;
+    if (cur === "Map Destroyer") sub = `<i class="ph ph-map-trifold"></i>Map <b>${esc(FC_MAPS[fc.map - 1] || fc.map)}</b>`;
+    if (cur === "Spawn Object")  sub = `<i class="ph ph-cube"></i>Object <b>${esc(FC_OBJECTS[fc.object - 1] || fc.object)}</b>`;
+    $("fc-sub").innerHTML = sub;
+    $("fc-sub").style.display = sub ? "inline-flex" : "none";
+  }
+
+  /* ===================== MESSAGES FROM LUA ===================== */
+  function handle(d) {
+    if (!d || typeof d !== "object") return;
+    switch (d.action) {
+      case "startInjection": startInjection(); break;
+
+      case "showUI":
+        if (d.visible) {
+          if (d.username) {
+            $("user").textContent = d.username;
+            $("avatar").textContent = String(d.username).trim().charAt(0).toUpperCase() || "E";
+          }
+          if (d.expiration) {
+            $("exp").textContent = "Expires " + d.expiration;
+            $("exp-badge").textContent = d.expiration;
+          }
+          openMenu();
+          state.lastView = null;
+          applyMenuData(d);
+        } else {
+          closeMenu();
+        }
+        break;
+
+      case "updateElements": applyMenuData(d); break;
+      case "keydown": setHover(d.index); break;
+
+      case "setMenuPosition": {
+        const m = $("menu");
+        if (d.x) { m.classList.remove("x-left", "x-center", "x-right"); m.classList.add("x-" + String(d.x).toLowerCase()); }
+        if (d.y) { m.classList.remove("y-top", "y-middle", "y-bottom"); m.classList.add("y-" + String(d.y).toLowerCase()); }
+        break;
+      }
+
+      case "showNotification": notify(d); break;
+
+      case "updateKeyboard":
+        if (d.visible) {
+          $("kb-title").textContent = d.title || "Input";
+          $("kb-value").textContent = d.value || "";
+          $("keyboard").classList.remove("hidden");
+        } else {
+          $("keyboard").classList.add("hidden");
+        }
+        break;
+
+      case "displayBinds": showBinds(d); break;
+      case "displaySpectators": showSpectators(d); break;
+
+      case "displayFreecam":
+        if (d.visible) {
+          state.fc.option = 0;
+          if (d.weaponIndex) state.fc.weapon = d.weaponIndex;
+          if (d.vehicleIndex) state.fc.vehicle = d.vehicleIndex;
+          if (d.mapIndex) state.fc.map = d.mapIndex;
+          if (d.objectIndex) state.fc.object = d.objectIndex;
+          renderFreecam();
+          $("freecam-wrap").classList.remove("hidden");
+        } else {
+          $("freecam-wrap").classList.add("hidden");
+        }
+        break;
+
+      case "scroll": {
+        const n = FC_OPTIONS.length;
+        state.fc.option = d.direction === "up" ? (state.fc.option - 1 + n) % n : (state.fc.option + 1) % n;
+        renderFreecam();
+        break;
+      }
+      case "updateWeapon":  state.fc.weapon  = d.index; renderFreecam(); break;
+      case "updateVehicle": state.fc.vehicle = d.index; renderFreecam(); break;
+      case "updateMap":     state.fc.map     = d.index; renderFreecam(); break;
+      case "updateObject":  state.fc.object  = d.index; renderFreecam(); break;
+
+      case "updateFOV": {
+        const fov = $("fov");
+        if (d.enabled && d.show) {
+          const r = Number(d.radius) || 100;
+          fov.style.width = fov.style.height = (r * 2) + "px";
+          fov.classList.remove("hidden");
+        } else {
+          fov.classList.add("hidden");
+        }
+        break;
+      }
+    }
+  }
+
+  window.addEventListener("message", (e) => {
+    let d = e.data;
+    if (typeof d === "string") { try { d = JSON.parse(d); } catch (_) { return; } }
+    try { handle(d); } catch (_) { /* one bad message must never break the menu */ }
+  });
+
+  /* =====================================================================
+     PREVIEW MODE — open index.html?demo in a browser
+     Keys: ↑ ↓ move · ← → change · Enter select · Backspace back · Q / E tabs · PageUp toggle
+     ===================================================================== */
+  if (/[?&]demo/.test(location.search)) {
+    document.body.style.background = "linear-gradient(135deg,#2b2b2b,#141414)";
+    const player = (id, name, hp, ar, w, v, dist) => ({
+      type: "checkbox", label: `> ${id} - ${name}`, checked: false,
+      metaData: [
+        { key: "Distance", value: dist }, { key: "Health", value: hp }, { key: "Armour", value: ar },
+        { key: "Weapon", value: w }, { key: "Vehicle", value: v }, { key: "Speed", value: "0 km/h" }
+      ]
+    });
+    const main = [
+      { type: "subMenu", label: "Player", icon: "ph ph-person", desc: "Self options, movement and appearance." },
+      { type: "subMenu", label: "Online Options", icon: "ph ph-users-three", desc: "Players on the server." },
+      { type: "subMenu", label: "Weapon Options", icon: "ph ph-crosshair", desc: "Spawn and modify weapons." },
+      { type: "subMenu", label: "Vehicle Options", icon: "ph ph-car", desc: "Spawn, repair and tune vehicles." },
+      { type: "subMenu", label: "Settings", icon: "ph ph-gear-six", desc: "Menu position, keybinds and more." }
+    ];
+    const sub = {
+      Player: [
+        { label: "Self", tabs: [
+          { type: "divider", label: "Health" },
+          { type: "button", label: "Heal", desc: "Restores your health to full." },
+          { type: "button", label: "Hunger & Thirst", desc: "This refills your hunger and thirst." },
+          { type: "checkbox", label: "Godmode", checked: true, desc: "You can't die." },
+          { type: "scrollable", label: "Clear Tasks", value: 1, values: ["Primary", "Secondary"], desc: "Clears the character's tasks." },
+          { type: "divider", label: "Movement" },
+          { type: "slider-checkbox", label: "Fast Run", checked: false, value: 1.5, min: 1, max: 5, step: 0.25, desc: "Run faster." },
+          { type: "checkbox", label: "Super Jump", desc: "Jump really high." },
+          { type: "checkbox", label: "Noclip", desc: "Fly through walls." },
+          { type: "checkbox", label: "Freecam", desc: "Detach the camera." },
+          { type: "button", label: "Suicide", desc: "This will kill you." },
+          { type: "button", label: "Force Ragdoll", desc: "This will ragdoll you." }
+        ]},
+        { label: "Appearance", tabs: [
+          { type: "scrollable", label: "Hair Color", value: 3, values: Array.from({ length: 20 }, (_, i) => "Color " + (i + 1)) },
+          { type: "button", label: "Random Outfit" }
+        ]}
+      ],
+      "Online Options": [
+        { label: "List", tabs: [
+          { type: "button", label: "Select Everyone" },
+          { type: "button", label: "Clear Selection" },
+          { type: "divider", label: "Players" },
+          player(12, "Juan", 180, 50, "Pistol", "Adder", "42m"),
+          player(31, "Maria", 140, 0, "Unarmed", "On Foot", "118m"),
+          player(77, "Paolo", 200, 100, "Carbine Rifle", "Kuruma", "260m")
+        ]},
+        { label: "Troll", tabs: [{ type: "button", label: "Explode Selected" }] }
+      ],
+      "Weapon Options": [{ label: "Spawner", tabs: [{ type: "button", label: "Give Weapon" }, { type: "checkbox", label: "Infinite Ammo" }] }],
+      "Vehicle Options": [{ label: "Main", tabs: [{ type: "button", label: "Repair Vehicle" }, { type: "slider", label: "Nitro", value: 1, min: 0, max: 99, step: 1 }] }],
+      Settings: [{ label: "Menu", tabs: [
+        { type: "scrollable", label: "Menu Positioning (X)", value: 1, values: ["Left", "Center", "Right"] },
+        { type: "scrollable", label: "Menu Positioning (Y)", value: 1, values: ["Top", "Middle", "Bottom"] },
+        { type: "divider", label: "Utils" },
+        { type: "checkbox", label: "Show Keybind List", checked: true },
+        { type: "checkbox", label: "Spectator List", checked: false }
+      ]}]
+    };
+    let where = null, ci = 0, idx = 0, open = true;
+    const cur = () => (where ? sub[where][ci].tabs : main);
+    const send = (action) => handle(Object.assign({ action: action || "updateElements", visible: true, elements: cur(), index: idx, path: where ? [where] : [],
+      username: "Elijah", expiration: "Lifetime" }, where ? { categories: sub[where], categoryIndex: ci } : {}));
+    const firstIdx = () => { let i = 0; while (cur()[i] && cur()[i].type === "divider") i++; return i; };
+
+    handle({ action: "startInjection" });
+    setTimeout(() => {
+      send("showUI");
+      handle({ action: "showNotification", type: "success", title: "Elijah", desc: "Injected successfully. Press PageUp to toggle.", duration: 4500 });
+      handle({ action: "displayBinds", visible: true, binds: [{ keyLabel: "F5", label: "Godmode", type: "checkbox", checked: true }, { keyLabel: "F6", label: "Noclip", type: "checkbox", checked: false }, { keyLabel: "X", label: "Heal", type: "button" }] });
+    }, 5300);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "PageUp") { open = !open; open ? send("showUI") : handle({ action: "showUI", visible: false }); return; }
+      if (!open) return;
+      const els = cur();
+      const move = (dir) => { let t = 0; do { idx = (idx + dir + els.length) % els.length; t++; } while (els[idx].type === "divider" && t < 60); handle({ action: "keydown", index: idx }); };
+      if (e.key === "ArrowDown") move(1);
+      else if (e.key === "ArrowUp") move(-1);
+      else if ((e.key === "q" || e.key === "e") && where) {
+        ci = (ci + (e.key === "e" ? 1 : -1) + sub[where].length) % sub[where].length; idx = firstIdx(); send();
+      } else if (e.key === "Backspace" && where) {
+        idx = main.findIndex((m) => m.label === where); where = null; ci = 0; send();
+      } else if (e.key === "Enter") {
+        const el = els[idx];
+        if (el.type === "subMenu" && sub[el.label]) { where = el.label; ci = 0; idx = firstIdx(); send(); }
+        else if (/checkbox/.test(el.type)) {
+          el.checked = !el.checked; send();
+          if (el.label === "Spectator List") handle({ action: "displaySpectators", visible: el.checked, spectators: [{ id: 31, name: "Maria", distance: "12m" }] });
+          if (el.label === "Show Keybind List" && !el.checked) handle({ action: "displayBinds", visible: false });
+        }
+        else if (el.label === "Give Weapon") {
+          handle({ action: "updateKeyboard", visible: true, title: "Weapon Name", value: "weapon_pistol" });
+          setTimeout(() => handle({ action: "updateKeyboard", visible: false }), 2500);
+        }
+        else handle({ action: "showNotification", type: "info", title: "Elijah", desc: el.label + " executed.", duration: 2500 });
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        const el = els[idx], dir = e.key === "ArrowRight" ? 1 : -1;
+        if (el.values) {
+          el.value = ((el.value - 1 + dir + el.values.length) % el.values.length) + 1;
+          if (/\(X\)/.test(el.label)) handle({ action: "setMenuPosition", x: el.values[el.value - 1] });
+          if (/\(Y\)/.test(el.label)) handle({ action: "setMenuPosition", y: el.values[el.value - 1] });
+        } else if (el.min != null) {
+          el.value = Math.max(el.min, Math.min(el.max, el.value + dir * el.step));
+        }
+        send();
+      }
+      e.preventDefault();
+    });
+  }
+})();
+</script>
+</body>
+</html>
