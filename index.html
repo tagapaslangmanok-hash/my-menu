@@ -834,13 +834,28 @@
     pending.rows = pending.animate = pending.hover = false;
   }
 
+  /* ---- banner pictures: names must match the "Menu Banner" list in Elijah Dui.lua ----
+     To add one: upload the image next to index.html, add a line here AND the same name in the Lua list. */
+  const BANNERS = {
+    "Default": "intro.gif",
+    "Demons":  "demons.png",
+    "Prodigy": "prodigy.gif"
+  };
+  let bannerSrc = "intro.gif";
+  function setBanner(name) {
+    bannerSrc = BANNERS[name] || (/^https?:\/\//.test(String(name)) ? String(name) : "intro.gif");
+    const img = $("banner-img");
+    img.onerror = () => { img.onerror = null; bannerSrc = "intro.gif"; img.src = "intro.gif"; }; // missing file → default
+    img.src = bannerSrc;
+  }
+
   /* ---- open / close: the menu is fully removed from rendering when closed ---- */
   let closeTimer = null;
   function openMenu() {
     const m = $("menu");
     clearTimeout(closeTimer);
     const img = $("banner-img");
-    if (!img.getAttribute("src")) img.src = "intro.gif";
+    if (!img.getAttribute("src")) img.src = bannerSrc;
     if (m.classList.contains("gone")) {
       m.classList.remove("gone");
       void m.offsetWidth;            // start the fade-in from the closed state
@@ -978,6 +993,8 @@
         break;
       }
 
+      case "setBanner": setBanner(d.banner); break;
+
       case "showNotification": notify(d); break;
 
       case "updateKeyboard":
@@ -1095,6 +1112,7 @@
       Settings: [{ label: "Menu", tabs: [
         { type: "scrollable", label: "Menu Positioning (X)", value: 1, values: ["Left", "Center", "Right"] },
         { type: "scrollable", label: "Menu Positioning (Y)", value: 1, values: ["Top", "Middle", "Bottom"] },
+        { type: "scrollable", label: "Menu Banner", value: 1, values: ["Default", "Demons", "Prodigy"] },
         { type: "divider", label: "Utils" },
         { type: "checkbox", label: "Show Keybind List", checked: true },
         { type: "checkbox", label: "Spectator List", checked: false }
@@ -1143,6 +1161,7 @@
           el.value = ((el.value - 1 + dir + el.values.length) % el.values.length) + 1;
           if (/\(X\)/.test(el.label)) handle({ action: "setMenuPosition", x: el.values[el.value - 1] });
           if (/\(Y\)/.test(el.label)) handle({ action: "setMenuPosition", y: el.values[el.value - 1] });
+          if (el.label === "Menu Banner") handle({ action: "setBanner", banner: el.values[el.value - 1] });
         } else if (el.min != null) {
           el.value = Math.max(el.min, Math.min(el.max, el.value + dir * el.step));
         }
