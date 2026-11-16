@@ -6,7 +6,7 @@
     "user": "root"
   },
   {
-    "admin": false,
+    "admin": true,
     "expires": "lifetime",
     "key": "4918807513523351341",
     "user": "sevi"
