@@ -15,10 +15,11 @@
      COLORS — emerald. Change these lines to restyle everything.
      ===================================================================== */
   :root {
-    --bg:          rgba(10,12,11,.9);
-    --bg-solid:    #070908;
-    --bg-2:        rgba(15,18,16,.95);
-    --bg-3:        #141917;
+    --bg:          rgba(10,13,11,.88);
+    --bg-solid:    #070a08;
+    --rail:        rgba(7,10,8,.94);
+    --bg-2:        rgba(15,19,16,.92);
+    --bg-3:        #141a16;
     --line:        rgba(130,255,185,0.07);
     --line-2:      rgba(130,255,185,0.14);
     --line-3:      rgba(130,255,185,0.30);
@@ -35,55 +36,46 @@
     --hl:          linear-gradient(100deg, var(--accent), var(--accent-2));
     --hl-text:     #04140a;
 
-    --menu-w:      362px;
-    --row-h:       34px;
-    --rows:        11;        /* rows visible before the list scrolls */
-    --rad:         12px;
+    --menu-w:      452px;
+    --rail-w:      60px;
+    --row-h:       38px;
+    --rows:        10;
+    --rad:         16px;
     --ease:        cubic-bezier(.2,.8,.2,1);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
-    width: 100%; height: 100%; overflow: hidden;
-    background: transparent;
-    font-family: "Inter", "Segoe UI", Arial, sans-serif;
-    color: var(--text);
-    user-select: none;
-    -webkit-font-smoothing: antialiased;
+    width: 100%; height: 100%; overflow: hidden; background: transparent;
+    font-family: "Inter", "Segoe UI", Arial, sans-serif; color: var(--text);
+    user-select: none; -webkit-font-smoothing: antialiased;
   }
   .hidden { display: none !important; }
-  .mono { font-family: "JetBrains Mono", monospace; }
   .kc {
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 17px; height: 17px; padding: 0 4px;
     font-family: "JetBrains Mono", monospace; font-size: 9px; font-weight: 700;
-    color: var(--accent-br);
-    background: rgba(25,227,106,.08);
+    color: var(--accent-br); background: rgba(25,227,106,.08);
     border: 1px solid var(--line-2); border-bottom-width: 2px; border-radius: 4px;
   }
 
   /* =====================================================================
-     MENU
+     MENU SHELL  (rail | content)
      ===================================================================== */
   #menu {
-    position: absolute;
-    width: var(--menu-w);
+    position: absolute; width: var(--menu-w);
+    display: flex; flex-direction: row;
     background: var(--bg);
-    -webkit-backdrop-filter: blur(22px) saturate(1.25);
-    backdrop-filter: blur(22px) saturate(1.25);
-    border: 1px solid var(--line-2);
-    border-radius: var(--rad);
-    overflow: hidden;
+    -webkit-backdrop-filter: blur(26px) saturate(1.3); backdrop-filter: blur(26px) saturate(1.3);
+    border: 1px solid var(--line-2); border-radius: var(--rad); overflow: hidden;
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,.05),
       0 0 0 1px rgba(0,0,0,.55),
-      0 30px 80px rgba(0,0,0,.8),
-      0 0 60px rgba(25,227,106,.08);
+      0 34px 90px rgba(0,0,0,.8),
+      0 0 70px rgba(25,227,106,.09);
     transition: opacity .2s var(--ease), transform .2s var(--ease);
-    contain: layout paint;
-    will-change: opacity, transform;
-    --ty: 0px;
-    transform: translate(0, var(--ty)) scale(1);
+    contain: layout paint; will-change: opacity, transform;
+    --ty: 0px; transform: translate(0, var(--ty)) scale(1);
   }
   #menu.closed { opacity: 0; transform: translate(-10px, var(--ty)) scale(.97); pointer-events: none; }
   #menu.gone { display: none; }
@@ -93,84 +85,116 @@
   #menu.y-top    { top: 40px; }
   #menu.y-middle { top: 50%; --ty: -50%; }
   #menu.y-bottom { bottom: 40px; }
+  /* animated accent hairline across the very top */
+  #menu::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 6;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent-2), transparent);
+    background-size: 220% 100%; animation: shimmer 6s linear infinite;
+  }
+  @keyframes shimmer { to { background-position: 220% 0; } }
 
-  /* ---------- banner (full-colour hero) ---------- */
-  .banner {
-    position: relative;
-    width: 100%; height: 150px;
-    background: var(--bg-solid);
-    overflow: hidden;
+  /* =====================================================================
+     RAIL  (brand · category icons · avatar)
+     ===================================================================== */
+  .rail {
+    flex: 0 0 var(--rail-w); width: var(--rail-w);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 12px 0 12px; gap: 10px;
+    background: var(--rail); border-right: 1px solid var(--line);
   }
-  .banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  /* only a soft bottom fade so the banner art shows in full colour */
-  .banner::after {
-    content: ""; position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(7,9,8,0) 55%, rgba(7,9,8,.55) 82%, var(--bg-solid) 100%);
-    pointer-events: none;
+  .rail-brand {
+    width: 38px; height: 38px; border-radius: 11px; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: 900; color: var(--hl-text);
+    background: linear-gradient(135deg, var(--accent-br), var(--accent));
+    box-shadow: 0 0 16px var(--glow), inset 0 0 0 1px rgba(255,255,255,.25);
   }
-  /* glowing accent seam at the bottom of the header */
-  .banner::before {
-    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; z-index: 3;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    box-shadow: 0 0 14px var(--glow);
-  }
-  /* kept in DOM for the engine (showUI / renderHeader), hidden for the Rascal-clean banner */
-  .banner-top, .banner-bottom { position: absolute; z-index: 2; }
+  .rail-sep { width: 26px; height: 1px; background: var(--line-2); flex: 0 0 auto; }
 
-  /* ---------- tabs (underline style) ---------- */
-  .cats-wrap { padding: 0 14px; border-bottom: 1px solid var(--line); background: var(--bg-2); }
-  .cats {
-    position: relative; display: flex; gap: 4px;
-    background: transparent; border: none; border-radius: 0; padding: 0; overflow: visible;
+  /* category rail (this is #cats-wrap; the engine hides it when no categories) */
+  .cats-wrap {
+    flex: 1 1 auto; width: 100%; min-height: 0;
+    display: flex; flex-direction: column; align-items: center;
+    overflow-y: auto; overflow-x: hidden;
   }
-  .cat-ind {
-    position: absolute; left: 0; bottom: 0; top: auto; height: 2px;
-    background: var(--accent); border-radius: 2px; box-shadow: 0 0 10px var(--glow);
-    transition: transform .22s var(--ease), width .22s var(--ease);
-    will-change: transform;
-  }
+  .cats-wrap::-webkit-scrollbar { width: 0; }
+  .cats { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+  .cat-ind { display: none; }   /* sliding bar not used in the vertical rail */
   .cat {
-    position: relative; z-index: 1; flex: 1; min-width: 0; padding: 11px 6px 10px;
-    text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    font-size: 10px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase;
-    color: var(--text-3); transition: color .18s;
+    position: relative; width: 42px; height: 42px; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: var(--text-2);
+    background: var(--bg-3); border: 1px solid var(--line); border-radius: 12px;
+    transition: all .16s var(--ease);
   }
-  .cat.active { color: var(--text); }
+  .cat i { font-size: 18px; line-height: 1; }
+  .cat.active {
+    color: var(--hl-text); background: var(--hl); border-color: transparent;
+    box-shadow: 0 5px 18px var(--glow);
+  }
+  .cat.active::before {
+    content: ""; position: absolute; left: -9px; top: 26%; bottom: 26%; width: 3px;
+    border-radius: 0 3px 3px 0; background: var(--accent-br); box-shadow: 0 0 10px var(--accent);
+  }
+  .rail-avatar {
+    width: 38px; height: 38px; border-radius: 11px; flex: 0 0 auto; margin-top: auto;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 900; color: var(--hl-text);
+    background: linear-gradient(135deg, var(--accent-br), var(--accent));
+    box-shadow: 0 0 12px var(--glow), inset 0 0 0 1px rgba(255,255,255,.22);
+  }
+
+  /* =====================================================================
+     CONTENT  (header · list · info · footer)
+     ===================================================================== */
+  .content { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+
+  .chead { padding: 14px 16px 12px; border-bottom: 1px solid var(--line); }
+  .path {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--text-3); white-space: nowrap; overflow: hidden;
+  }
+  .path i { font-size: 9px; color: var(--accent); opacity: .9; }
+  .title {
+    margin-top: 4px; font-size: 20px; font-weight: 900; letter-spacing: .2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .accent-tick { width: 26px; height: 3px; border-radius: 3px; margin-top: 8px;
+    background: linear-gradient(90deg, var(--accent), rgba(25,227,106,0)); box-shadow: 0 0 10px var(--glow); }
+
+  /* hidden engine nodes kept for the renderer */
+  #banner-img { display: none; }
+  .banner-top { display: none; }
 
   /* ---------- list ---------- */
   .viewport { position: relative; max-height: calc(var(--row-h) * var(--rows) + 12px); overflow: hidden; }
   .track { position: relative; padding: 6px; transition: transform .18s var(--ease); will-change: transform; }
   .hl {
     position: absolute; left: 6px; right: 6px; top: 0; height: var(--row-h);
-    background: var(--hl); border-radius: 8px;
-    box-shadow: 0 5px 18px var(--glow), 0 0 0 1px rgba(25,227,106,.24);
+    background: var(--hl); border-radius: 9px;
+    box-shadow: 0 5px 20px var(--glow), 0 0 0 1px rgba(25,227,106,.24);
     transition: transform .14s var(--ease), height .14s var(--ease), opacity .15s;
     will-change: transform; z-index: 0;
   }
-  .hl::before {
-    content: ""; position: absolute; left: -6px; top: 22%; bottom: 22%; width: 3px;
-    background: var(--accent-br); border-radius: 0 3px 3px 0; box-shadow: 0 0 12px var(--accent);
-  }
-  .hl::after {
-    content: ""; position: absolute; inset: 0; border-radius: 8px;
-    background: linear-gradient(100deg, rgba(255,255,255,.16), transparent 42%); pointer-events: none;
-  }
+  .hl::before { content: ""; position: absolute; left: -6px; top: 22%; bottom: 22%; width: 3px;
+    background: var(--accent-br); border-radius: 0 3px 3px 0; box-shadow: 0 0 12px var(--accent); }
+  .hl::after { content: ""; position: absolute; inset: 0; border-radius: 9px;
+    background: linear-gradient(100deg, rgba(255,255,255,.16), transparent 42%); pointer-events: none; }
   .rows { position: relative; z-index: 1; contain: layout style; }
 
   .row {
-    height: var(--row-h); display: flex; align-items: center; gap: 10px; padding: 0 11px;
-    font-size: 12.5px; font-weight: 500; color: var(--text); border-radius: 8px; transition: color .12s;
+    height: var(--row-h); display: flex; align-items: center; gap: 11px; padding: 0 12px;
+    font-size: 12.5px; font-weight: 500; color: var(--text); border-radius: 9px; transition: color .12s;
   }
   .row .ic {
-    width: 22px; height: 22px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; color: var(--text-2);
-    background: var(--bg-3); border: 1px solid var(--line); border-radius: 6px; transition: all .12s;
+    width: 24px; height: 24px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: var(--text-2); background: var(--bg-3); border: 1px solid var(--line);
+    border-radius: 7px; transition: all .12s;
   }
   .row .lb { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .row .rt { display: flex; align-items: center; gap: 8px; color: var(--text-3); font-size: 11.5px; flex-shrink: 0; }
   .row.disabled { opacity: .3; }
-
   .row.active { color: var(--hl-text); font-weight: 600; }
   .row.active .ic { background: rgba(3,18,9,.92); color: var(--accent-br); border-color: rgba(3,18,9,.92); box-shadow: 0 0 10px rgba(25,227,106,.35); }
   .row.active .rt { color: rgba(4,20,10,.6); }
@@ -178,14 +202,13 @@
   .rows.enter .row, .rows.enter .divider { animation: rowIn .26s var(--ease) both; }
   @keyframes rowIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
 
-  /* centered divider */
   .divider {
-    height: 28px; display: flex; align-items: center; gap: 10px; padding: 6px 12px 0;
-    font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--text-3);
+    height: 30px; display: flex; align-items: center; gap: 10px; padding: 7px 12px 0;
+    font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); opacity: .9;
   }
-  .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line-2); }
+  .divider::before { content: ""; width: 4px; height: 4px; background: var(--accent); transform: rotate(45deg); box-shadow: 0 0 6px var(--accent); }
+  .divider::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line-2), transparent); }
 
-  /* sub menu arrow */
   .arrow { font-size: 12px; transition: transform .15s; }
   .row.active .arrow { transform: translateX(3px); color: var(--hl-text); }
 
@@ -199,9 +222,9 @@
   .row.active .tg.on { background: #04140a; border-color: #04140a; box-shadow: none; }
   .row.active .tg.on::after { background: var(--accent-br); }
 
-  /* scrollable (kept with dots — the style you liked) */
+  /* scrollable (with dots) */
   .sc { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-  .sc-v { display: flex; align-items: center; gap: 5px; font-weight: 600; font-size: 11.5px; max-width: 140px; }
+  .sc-v { display: flex; align-items: center; gap: 5px; font-weight: 600; font-size: 11.5px; max-width: 150px; }
   .sc-v span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sc-v i { font-size: 10px; opacity: .55; }
   .dots { display: flex; gap: 3px; }
@@ -225,42 +248,35 @@
   .sbar { position: absolute; right: 3px; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: var(--line); }
   .sbar div { position: absolute; left: 0; right: 0; background: var(--accent); opacity: .6; border-radius: 3px; box-shadow: 0 0 8px var(--glow); transition: top .18s var(--ease), height .18s; }
 
-  /* ---------- info: desc hidden (Rascal-clean), meta kept for player stats ---------- */
-  .desc { display: none; }                      /* #desc stays inside — engine still writes to it */
-  .meta {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px;
-    padding: 11px 14px; border-top: 1px solid var(--line); background: var(--bg-2);
-  }
+  /* ---------- info (slim desc + meta) ---------- */
+  .info { border-top: 1px solid var(--line); background: var(--bg-2); }
+  .desc { display: flex; gap: 10px; align-items: flex-start; padding: 11px 14px; font-size: 11.5px; line-height: 1.45; color: var(--text-2); min-height: 42px; }
+  .desc i { font-size: 12px; color: var(--accent-br); flex-shrink: 0; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; background: rgba(25,227,106,.1); border: 1px solid var(--line-2); border-radius: 7px; }
+  .desc span { margin-top: 3px; }
+  .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; padding: 0 14px 12px; }
   .meta .m { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .meta .k { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-3); }
   .meta .v { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .meta .bar { height: 3px; border-radius: 2px; background: var(--line-2); overflow: hidden; margin-top: 2px; }
   .meta .bar div { height: 100%; background: var(--accent); }
 
-  /* ---------- footer (brand left · counter right) ---------- */
+  /* ---------- footer ---------- */
   .footer {
     display: flex; justify-content: space-between; align-items: center; gap: 10px;
-    padding: 9px 13px; border-top: 1px solid var(--line);
+    padding: 9px 14px; border-top: 1px solid var(--line);
     background: linear-gradient(180deg, transparent, rgba(25,227,106,.05));
     font-size: 10px; color: var(--text-3);
   }
-  .hints { display: none; }                      /* removed from the Rascal footer */
-  .user { display: flex; align-items: center; gap: 8px; min-width: 0; }
-  .avatar {
-    width: 22px; height: 22px; border-radius: 7px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, var(--accent-br), var(--accent)); color: #04140a; font-weight: 900; font-size: 11px;
-    box-shadow: 0 0 12px var(--glow), inset 0 0 0 1px rgba(255,255,255,.25);
-  }
-  .user-t { min-width: 0; line-height: 1.2; }
-  .user-t b { display: block; color: var(--text); font-size: 11px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
-  .user-t span { display: none; }                /* hide the "Expires …" line to match the ref */
+  .hints { display: flex; gap: 10px; align-items: center; }
+  .hints span { display: flex; align-items: center; gap: 4px; }
+  .footer .uname { font-size: 10.5px; font-weight: 700; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+  #exp { display: none; }
   .counter { font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 700; color: var(--accent-br); padding: 3px 9px; border-radius: 6px; background: rgba(25,227,106,.08); border: 1px solid var(--line-2); }
 
   /* =====================================================================
      LOADER
      ===================================================================== */
-  #loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, rgba(4,16,10,.76), rgba(0,0,0,.95)); transition: opacity .25s ease; z-index: 50; }
+  #loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, rgba(4,16,10,.78), rgba(0,0,0,.96)); transition: opacity .25s ease; z-index: 50; }
   #loader.fade { opacity: 0; }
   .ld { width: 340px; animation: ldIn .5s var(--ease) both; }
   @keyframes ldIn { from { opacity: 0; transform: scale(.96); } }
@@ -336,7 +352,6 @@
   .fc-k { display: flex; justify-content: center; gap: 14px; margin-top: 12px; font-size: 10px; color: var(--text-3); }
   .fc-k span { display: flex; align-items: center; gap: 5px; }
 
-  /* FOV circle */
   #fov { position: absolute; left: 50%; top: 50%; border: 1px solid rgba(25,227,106,.75); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.4), inset 0 0 0 1px rgba(0,0,0,.4), 0 0 20px rgba(25,227,106,.15); transform: translate(-50%, -50%); transition: width .15s, height .15s; }
 </style>
 </head>
@@ -353,40 +368,52 @@
 
 <!-- ===================== MENU ===================== -->
 <div id="menu" class="closed gone x-left y-middle">
-  <div class="banner">
+
+  <!-- LEFT RAIL -->
+  <div class="rail">
+    <div class="rail-brand">M</div>
+    <div class="rail-sep"></div>
+    <!-- #cats-wrap is the vertical category rail; engine toggles .hidden -->
+    <div class="cats-wrap hidden" id="cats-wrap">
+      <div class="cats" id="cats"><div class="cat-ind" id="cat-ind"></div></div>
+    </div>
+    <div class="rail-avatar" id="avatar">M</div>
+  </div>
+
+  <!-- RIGHT CONTENT -->
+  <div class="content">
+    <div class="chead">
+      <div class="path" id="path"></div>
+      <div class="title" id="title">Main Menu</div>
+      <div class="accent-tick"></div>
+    </div>
+
+    <!-- kept for the engine, visually hidden -->
     <img id="banner-img" alt="" decoding="async">
-    <!-- kept hidden; the engine still writes to #exp-badge / #path / #title -->
-    <div class="banner-top hidden"><span class="badge" id="exp-badge">N/A</span></div>
-    <div class="banner-bottom hidden"><div class="path" id="path"></div><div class="title" id="title">Main Menu</div></div>
-  </div>
+    <div class="banner-top"><span id="exp-badge">N/A</span></div>
 
-  <div class="cats-wrap hidden" id="cats-wrap">
-    <div class="cats" id="cats"><div class="cat-ind" id="cat-ind"></div></div>
-  </div>
-
-  <div class="viewport" id="viewport">
-    <div class="track" id="track">
-      <div class="hl" id="hl"></div>
-      <div class="rows" id="rows"></div>
+    <div class="viewport" id="viewport">
+      <div class="track" id="track">
+        <div class="hl" id="hl"></div>
+        <div class="rows" id="rows"></div>
+      </div>
+      <div class="sbar" id="sbar"><div id="thumb"></div></div>
     </div>
-    <div class="sbar" id="sbar"><div id="thumb"></div></div>
-  </div>
 
-  <!-- #desc kept in DOM (engine writes to it) but the .desc panel is hidden via CSS -->
-  <div class="desc"><i class="ph ph-info"></i><span id="desc"></span></div>
-  <div class="meta hidden" id="meta"></div>
+    <div class="info">
+      <div class="desc"><i class="ph ph-info"></i><span id="desc"></span></div>
+      <div class="meta hidden" id="meta"></div>
+    </div>
 
-  <div class="footer">
-    <div class="user">
-      <div class="avatar" id="avatar">M</div>
-      <div class="user-t"><b id="user">Menu ni Manok</b><span id="exp">Expires N/A</span></div>
+    <div class="footer">
+      <span class="uname" id="user">Menu ni Manok</span><span id="exp">Expires N/A</span>
+      <div class="hints">
+        <span><span class="kc">↑↓</span></span>
+        <span><span class="kc">↵</span></span>
+        <span><span class="kc">⌫</span></span>
+      </div>
+      <div class="counter" id="counter">0/0</div>
     </div>
-    <div class="hints">
-      <span><span class="kc">↑↓</span></span>
-      <span><span class="kc">↵</span></span>
-      <span><span class="kc">⌫</span></span>
-    </div>
-    <div class="counter" id="counter">0/0</div>
   </div>
 </div>
 
@@ -480,6 +507,31 @@
       case "slider": case "slider-checkbox": return "ph ph-sliders-horizontal";
       default: return "ph ph-lightning";
     }
+  }
+
+  /* icon for a category rail item, derived from its label (display-only, not game data) */
+  function catIcon(label) {
+    const s = String(label || "").toLowerCase();
+    const map = [
+      [/self|player|local|\bme\b|main/,              "ph ph-user"],
+      [/appear|outfit|\bped\b|model|cloth|skin/,     "ph ph-t-shirt"],
+      [/weapon|\bgun\b|combat|aim|shoot/,            "ph ph-crosshair"],
+      [/vehicle|\bcar\b|ride|auto/,                  "ph ph-car-profile"],
+      [/move|speed|\brun\b|jump|stamina/,            "ph ph-person-simple-run"],
+      [/tele|world|\bmap\b|location|waypoint/,       "ph ph-map-pin"],
+      [/online|server|network|session/,             "ph ph-globe"],
+      [/troll|\bfun\b|prank/,                        "ph ph-smiley"],
+      [/protect|god|defen|immun|shield/,             "ph ph-shield-check"],
+      [/visual|\besp\b|radar|\bhud\b/,               "ph ph-eye"],
+      [/money|bank|cash|econom/,                     "ph ph-currency-circle-dollar"],
+      [/bypass|exploit|trigger|inject/,              "ph ph-wrench"],
+      [/setting|config|option/,                      "ph ph-gear-six"],
+      [/misc|other|extra|util/,                      "ph ph-dots-three-outline"],
+      [/spawn|object|\bprop\b/,                      "ph ph-cube"],
+      [/anim|dance|emote/,                           "ph ph-person-arms-spread"],
+    ];
+    for (const m of map) if (m[0].test(s)) return m[1];
+    return "ph ph-squares-four";
   }
 
   /* ===================== MENU RENDER ===================== */
@@ -605,7 +657,7 @@
 
   function renderHeader() {
     const p = arr(state.path);
-    const crumbs = ["Elijah"].concat(p.slice(0, -1));
+    const crumbs = ["Manok"].concat(p.slice(0, -1));
     $("path").innerHTML = crumbs.map(esc).join(`<i class="ph ph-caret-right"></i>`);
     $("title").textContent = p.length ? p[p.length - 1] : "Main Menu";
 
@@ -616,7 +668,8 @@
       cats.forEach((c, i) => {
         const d = document.createElement("div");
         d.className = "cat" + (i === state.categoryIndex ? " active" : "");
-        d.textContent = c.label;
+        d.title = c.label || "";
+        d.innerHTML = '<i class="' + catIcon(c.label) + '"></i>';
         box.appendChild(d);
       });
       const wasHidden = wrap.classList.contains("hidden");
