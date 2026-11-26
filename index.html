@@ -15,18 +15,17 @@
      COLORS — emerald. Change these lines to restyle everything.
      ===================================================================== */
   :root {
-    --bg:          rgba(10,13,11,.88);
-    --bg-solid:    #070a08;
-    --rail:        rgba(7,10,8,.94);
-    --bg-2:        rgba(15,19,16,.92);
-    --bg-3:        #141a16;
-    --line:        rgba(130,255,185,0.07);
-    --line-2:      rgba(130,255,185,0.14);
-    --line-3:      rgba(130,255,185,0.30);
-    --text:        #ecfff4;
+    --bg:          rgba(11,13,12,.92);
+    --bg-solid:    #080a09;
+    --bg-2:        rgba(16,19,17,.96);
+    --bg-3:        #151a17;
+    --line:        rgba(130,255,185,0.06);
+    --line-2:      rgba(130,255,185,0.13);
+    --line-3:      rgba(130,255,185,0.28);
+    --text:        #edfff5;
     --text-2:      #9db7a8;
-    --text-3:      #607567;
-    --text-4:      #37443d;
+    --text-3:      #5f7468;
+    --text-4:      #35433d;
 
     --accent:      #19e36a;
     --accent-2:    #06bf52;
@@ -36,11 +35,10 @@
     --hl:          linear-gradient(100deg, var(--accent), var(--accent-2));
     --hl-text:     #04140a;
 
-    --menu-w:      452px;
-    --rail-w:      60px;
-    --row-h:       38px;
-    --rows:        10;
-    --rad:         16px;
+    --menu-w:      362px;
+    --row-h:       32px;
+    --rows:        12;
+    --rad:         12px;
     --ease:        cubic-bezier(.2,.8,.2,1);
   }
 
@@ -60,19 +58,19 @@
   }
 
   /* =====================================================================
-     MENU SHELL  (rail | content)
+     MENU
      ===================================================================== */
   #menu {
     position: absolute; width: var(--menu-w);
-    display: flex; flex-direction: row;
+    display: flex; flex-direction: column;
     background: var(--bg);
-    -webkit-backdrop-filter: blur(26px) saturate(1.3); backdrop-filter: blur(26px) saturate(1.3);
+    -webkit-backdrop-filter: blur(24px) saturate(1.25); backdrop-filter: blur(24px) saturate(1.25);
     border: 1px solid var(--line-2); border-radius: var(--rad); overflow: hidden;
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,.05),
       0 0 0 1px rgba(0,0,0,.55),
-      0 34px 90px rgba(0,0,0,.8),
-      0 0 70px rgba(25,227,106,.09);
+      0 30px 80px rgba(0,0,0,.8),
+      0 0 60px rgba(25,227,106,.08);
     transition: opacity .2s var(--ease), transform .2s var(--ease);
     contain: layout paint; will-change: opacity, transform;
     --ty: 0px; transform: translate(0, var(--ty)) scale(1);
@@ -85,175 +83,114 @@
   #menu.y-top    { top: 40px; }
   #menu.y-middle { top: 50%; --ty: -50%; }
   #menu.y-bottom { bottom: 40px; }
-  /* animated accent hairline across the very top */
-  #menu::before {
-    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 6;
-    background: linear-gradient(90deg, transparent, var(--accent), var(--accent-2), transparent);
-    background-size: 220% 100%; animation: shimmer 6s linear infinite;
-  }
-  @keyframes shimmer { to { background-position: 220% 0; } }
 
-  /* =====================================================================
-     RAIL  (brand · category icons · avatar)
-     ===================================================================== */
-  .rail {
-    flex: 0 0 var(--rail-w); width: var(--rail-w);
-    display: flex; flex-direction: column; align-items: center;
-    padding: 12px 0 12px; gap: 10px;
-    background: var(--rail); border-right: 1px solid var(--line);
+  /* ---------- banner (main menu only; engine adds #menu.sub inside submenus) ---------- */
+  .banner { position: relative; width: 100%; height: 150px; flex: 0 0 auto; background: var(--bg-solid); overflow: hidden; }
+  #menu.sub .banner { display: none; }
+  .banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .banner::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(8,10,9,0) 52%, rgba(8,10,9,.5) 80%, var(--bg-solid) 100%);
+    pointer-events: none;
   }
-  .rail-brand {
-    width: 38px; height: 38px; border-radius: 11px; flex: 0 0 auto;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 17px; font-weight: 900; color: var(--hl-text);
-    background: linear-gradient(135deg, var(--accent-br), var(--accent));
-    box-shadow: 0 0 16px var(--glow), inset 0 0 0 1px rgba(255,255,255,.25);
+  .banner::before {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; z-index: 3;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent); box-shadow: 0 0 14px var(--glow);
   }
-  .rail-sep { width: 26px; height: 1px; background: var(--line-2); flex: 0 0 auto; }
-
-  /* category rail (this is #cats-wrap; the engine hides it when no categories) */
-  .cats-wrap {
-    flex: 1 1 auto; width: 100%; min-height: 0;
-    display: flex; flex-direction: column; align-items: center;
-    overflow-y: auto; overflow-x: hidden;
-  }
-  .cats-wrap::-webkit-scrollbar { width: 0; }
-  .cats { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
-  .cat-ind { display: none; }   /* sliding bar not used in the vertical rail */
-  .cat {
-    position: relative; width: 42px; height: 42px; flex: 0 0 auto;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; color: var(--text-2);
-    background: var(--bg-3); border: 1px solid var(--line); border-radius: 12px;
-    transition: all .16s var(--ease);
-  }
-  .cat i { font-size: 18px; line-height: 1; }
-  .cat.active {
-    color: var(--hl-text); background: var(--hl); border-color: transparent;
-    box-shadow: 0 5px 18px var(--glow);
-  }
-  .cat.active::before {
-    content: ""; position: absolute; left: -9px; top: 26%; bottom: 26%; width: 3px;
-    border-radius: 0 3px 3px 0; background: var(--accent-br); box-shadow: 0 0 10px var(--accent);
-  }
-  .rail-avatar {
-    width: 38px; height: 38px; border-radius: 11px; flex: 0 0 auto; margin-top: auto;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 900; color: var(--hl-text);
-    background: linear-gradient(135deg, var(--accent-br), var(--accent));
-    box-shadow: 0 0 12px var(--glow), inset 0 0 0 1px rgba(255,255,255,.22);
-  }
-
-  /* =====================================================================
-     CONTENT  (header · list · info · footer)
-     ===================================================================== */
-  .content { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
-
-  .chead { padding: 14px 16px 12px; border-bottom: 1px solid var(--line); }
-  .path {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 10px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase;
-    color: var(--text-3); white-space: nowrap; overflow: hidden;
-  }
-  .path i { font-size: 9px; color: var(--accent); opacity: .9; }
-  .title {
-    margin-top: 4px; font-size: 20px; font-weight: 900; letter-spacing: .2px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .accent-tick { width: 26px; height: 3px; border-radius: 3px; margin-top: 8px;
-    background: linear-gradient(90deg, var(--accent), rgba(25,227,106,0)); box-shadow: 0 0 10px var(--glow); }
-
-  /* hidden engine nodes kept for the renderer */
-  #banner-img { display: none; }
+  /* breadcrumb/title over the banner (main menu) */
+  .banner-bottom { position: absolute; left: 16px; right: 16px; bottom: 13px; z-index: 2; }
+  #menu.sub .banner-bottom { display: none; }
   .banner-top { display: none; }
+  .path { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-3); white-space: nowrap; overflow: hidden; }
+  .path i { font-size: 9px; color: var(--accent); opacity: .9; }
+  .title { margin-top: 3px; font-size: 22px; font-weight: 900; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 14px rgba(0,0,0,.85); }
+
+  /* ---------- submenu header bar (only shows in submenus, replaces banner) ---------- */
+  .subhead { display: none; padding: 12px 14px 0; }
+  #menu.sub .subhead { display: block; }
+  .subhead .sp { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-3); }
+  .subhead .sp i { font-size: 9px; color: var(--accent); }
+  .subhead .st { margin-top: 2px; font-size: 16px; font-weight: 900; letter-spacing: .2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ---------- tabs (underline) ---------- */
+  .cats-wrap { padding: 10px 14px 0; }
+  #menu.sub .cats-wrap { padding-top: 10px; }
+  .cats { position: relative; display: flex; gap: 6px; border-bottom: 1px solid var(--line); }
+  .cat-ind { position: absolute; left: 0; bottom: -1px; top: auto; height: 2px; background: var(--accent); border-radius: 2px; box-shadow: 0 0 10px var(--glow); transition: transform .22s var(--ease), width .22s var(--ease); will-change: transform; }
+  .cat { position: relative; z-index: 1; flex: 0 1 auto; min-width: 0; padding: 9px 7px 10px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--text-3); transition: color .18s; }
+  .cat.active { color: var(--text); }
 
   /* ---------- list ---------- */
-  .viewport { position: relative; max-height: calc(var(--row-h) * var(--rows) + 12px); overflow: hidden; }
-  .track { position: relative; padding: 6px; transition: transform .18s var(--ease); will-change: transform; }
+  .viewport { position: relative; max-height: calc(var(--row-h) * var(--rows) + 10px); overflow: hidden; }
+  .track { position: relative; padding: 5px; transition: transform .18s var(--ease); will-change: transform; }
   .hl {
-    position: absolute; left: 6px; right: 6px; top: 0; height: var(--row-h);
-    background: var(--hl); border-radius: 9px;
-    box-shadow: 0 5px 20px var(--glow), 0 0 0 1px rgba(25,227,106,.24);
+    position: absolute; left: 5px; right: 5px; top: 0; height: var(--row-h);
+    background: var(--hl); border-radius: 7px;
+    box-shadow: 0 4px 16px var(--glow), 0 0 0 1px rgba(25,227,106,.22);
     transition: transform .14s var(--ease), height .14s var(--ease), opacity .15s;
     will-change: transform; z-index: 0;
   }
-  .hl::before { content: ""; position: absolute; left: -6px; top: 22%; bottom: 22%; width: 3px;
-    background: var(--accent-br); border-radius: 0 3px 3px 0; box-shadow: 0 0 12px var(--accent); }
-  .hl::after { content: ""; position: absolute; inset: 0; border-radius: 9px;
-    background: linear-gradient(100deg, rgba(255,255,255,.16), transparent 42%); pointer-events: none; }
+  .hl::before { content: ""; position: absolute; left: -5px; top: 24%; bottom: 24%; width: 3px; background: var(--accent-br); border-radius: 0 3px 3px 0; box-shadow: 0 0 12px var(--accent); }
+  .hl::after { content: ""; position: absolute; inset: 0; border-radius: 7px; background: linear-gradient(100deg, rgba(255,255,255,.15), transparent 44%); pointer-events: none; }
   .rows { position: relative; z-index: 1; contain: layout style; }
 
-  .row {
-    height: var(--row-h); display: flex; align-items: center; gap: 11px; padding: 0 12px;
-    font-size: 12.5px; font-weight: 500; color: var(--text); border-radius: 9px; transition: color .12s;
-  }
-  .row .ic {
-    width: 24px; height: 24px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-    font-size: 14px; color: var(--text-2); background: var(--bg-3); border: 1px solid var(--line);
-    border-radius: 7px; transition: all .12s;
-  }
+  .row { height: var(--row-h); display: flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 12.5px; font-weight: 500; color: var(--text-2); border-radius: 7px; transition: color .12s; }
+  .row .ic { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--text-3); transition: color .12s; }
   .row .lb { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .row .rt { display: flex; align-items: center; gap: 8px; color: var(--text-3); font-size: 11.5px; flex-shrink: 0; }
   .row.disabled { opacity: .3; }
-  .row.active { color: var(--hl-text); font-weight: 600; }
-  .row.active .ic { background: rgba(3,18,9,.92); color: var(--accent-br); border-color: rgba(3,18,9,.92); box-shadow: 0 0 10px rgba(25,227,106,.35); }
-  .row.active .rt { color: rgba(4,20,10,.6); }
+  .row.active { color: var(--hl-text); font-weight: 700; }
+  .row.active .ic { color: rgba(4,20,10,.75); }
+  .row.active .rt { color: rgba(4,20,10,.62); }
 
   .rows.enter .row, .rows.enter .divider { animation: rowIn .26s var(--ease) both; }
-  @keyframes rowIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+  @keyframes rowIn { from { opacity: 0; transform: translateX(-7px); } to { opacity: 1; transform: none; } }
 
-  .divider {
-    height: 30px; display: flex; align-items: center; gap: 10px; padding: 7px 12px 0;
-    font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); opacity: .9;
-  }
-  .divider::before { content: ""; width: 4px; height: 4px; background: var(--accent); transform: rotate(45deg); box-shadow: 0 0 6px var(--accent); }
-  .divider::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line-2), transparent); }
+  /* centered divider (Rasclat style) */
+  .divider { height: 26px; display: flex; align-items: center; gap: 10px; padding: 6px 12px 0; font-size: 9px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; color: var(--text-3); }
+  .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line-2); }
 
-  .arrow { font-size: 12px; transition: transform .15s; }
-  .row.active .arrow { transform: translateX(3px); color: var(--hl-text); }
+  /* subMenu arrow hidden — the left label + highlight is the affordance */
+  .arrow { display: none; }
 
-  /* toggle */
-  .tg { width: 32px; height: 17px; border-radius: 10px; background: var(--bg-3); border: 1px solid var(--line-2); position: relative; transition: all .18s var(--ease); }
-  .tg::after { content: ""; position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: 50%; background: var(--text-3); transition: all .18s var(--ease); }
-  .tg.on { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px var(--glow); }
-  .tg.on::after { left: 17px; background: #04140a; }
-  .row.active .tg { background: rgba(4,20,10,.18); border-color: rgba(4,20,10,.32); }
-  .row.active .tg::after { background: rgba(4,20,10,.4); }
+  /* toggle — circle dot */
+  .tg { width: 16px; height: 16px; border-radius: 50%; background: transparent; border: 1.5px solid var(--line-3); position: relative; transition: all .18s var(--ease); }
+  .tg::after { content: none; }
+  .tg.on { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 9px var(--glow); }
+  .tg.on::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: #04140a; }
+  .row.active .tg { border-color: rgba(4,20,10,.45); }
   .row.active .tg.on { background: #04140a; border-color: #04140a; box-shadow: none; }
   .row.active .tg.on::after { background: var(--accent-br); }
 
-  /* scrollable (with dots) */
+  /* scrollable (< value > with dots) */
   .sc { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-  .sc-v { display: flex; align-items: center; gap: 5px; font-weight: 600; font-size: 11.5px; max-width: 150px; }
+  .sc-v { display: flex; align-items: center; gap: 5px; font-weight: 700; font-size: 11.5px; max-width: 150px; }
   .sc-v span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sc-v i { font-size: 10px; opacity: .55; }
   .dots { display: flex; gap: 3px; }
   .dots b { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .25; }
-  .dots b.on { opacity: 1; width: 10px; border-radius: 2px; }
+  .dots b.on { opacity: 1; width: 9px; border-radius: 2px; }
   .row:not(.active) .dots b.on { background: var(--accent); opacity: 1; }
   .sc-n { font-size: 9px; opacity: .6; font-family: "JetBrains Mono", monospace; }
 
   /* slider */
   .sl { display: flex; align-items: center; gap: 9px; }
-  .sl-t { width: 84px; height: 4px; border-radius: 3px; background: var(--line-2); position: relative; }
+  .sl-t { width: 82px; height: 4px; border-radius: 3px; background: var(--line-2); position: relative; }
   .sl-f { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--accent); transition: width .12s var(--ease); }
   .sl-k { position: absolute; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--accent-br); box-shadow: 0 0 0 3px rgba(25,227,106,.2), 0 0 8px var(--glow); transition: left .12s var(--ease); }
   .row.active .sl-t { background: rgba(4,20,10,.2); }
   .row.active .sl-f, .row.active .sl-k { background: #04140a; }
   .row.active .sl-k { box-shadow: 0 0 0 3px rgba(4,20,10,.2); }
-  .sl-n { min-width: 38px; text-align: center; padding: 2px 6px; border-radius: 4px; font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 700; background: var(--bg-3); border: 1px solid var(--line); color: var(--accent-br); }
+  .sl-n { min-width: 36px; text-align: center; padding: 2px 6px; border-radius: 4px; font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 700; background: var(--bg-3); border: 1px solid var(--line); color: var(--accent-br); }
   .row.active .sl-n { background: #04140a; color: var(--accent-br); border-color: #04140a; }
 
   /* scrollbar */
-  .sbar { position: absolute; right: 3px; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: var(--line); }
-  .sbar div { position: absolute; left: 0; right: 0; background: var(--accent); opacity: .6; border-radius: 3px; box-shadow: 0 0 8px var(--glow); transition: top .18s var(--ease), height .18s; }
+  .sbar { position: absolute; right: 3px; top: 7px; bottom: 7px; width: 3px; border-radius: 3px; background: var(--line); }
+  .sbar div { position: absolute; left: 0; right: 0; background: var(--accent); opacity: .55; border-radius: 3px; box-shadow: 0 0 8px var(--glow); transition: top .18s var(--ease), height .18s; }
 
-  /* ---------- info (slim desc + meta) ---------- */
-  .info { border-top: 1px solid var(--line); background: var(--bg-2); }
-  .desc { display: flex; gap: 10px; align-items: flex-start; padding: 11px 14px; font-size: 11.5px; line-height: 1.45; color: var(--text-2); min-height: 42px; }
-  .desc i { font-size: 12px; color: var(--accent-br); flex-shrink: 0; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; background: rgba(25,227,106,.1); border: 1px solid var(--line-2); border-radius: 7px; }
-  .desc span { margin-top: 3px; }
-  .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; padding: 0 14px 12px; }
+  /* ---------- info: desc hidden (Rasclat-clean), meta kept for player stats ---------- */
+  .desc { display: none; }
+  .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; padding: 10px 14px; border-top: 1px solid var(--line); background: var(--bg-2); }
   .meta .m { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .meta .k { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-3); }
   .meta .v { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -261,15 +198,11 @@
   .meta .bar div { height: 100%; background: var(--accent); }
 
   /* ---------- footer ---------- */
-  .footer {
-    display: flex; justify-content: space-between; align-items: center; gap: 10px;
-    padding: 9px 14px; border-top: 1px solid var(--line);
-    background: linear-gradient(180deg, transparent, rgba(25,227,106,.05));
-    font-size: 10px; color: var(--text-3);
-  }
-  .hints { display: flex; gap: 10px; align-items: center; }
-  .hints span { display: flex; align-items: center; gap: 4px; }
-  .footer .uname { font-size: 10.5px; font-weight: 700; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+  .footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 13px; border-top: 1px solid var(--line); background: linear-gradient(180deg, transparent, rgba(25,227,106,.05)); font-size: 10px; color: var(--text-3); }
+  .hints { display: none; }
+  .brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .brand .bm { width: 20px; height: 20px; border-radius: 6px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: var(--hl-text); background: linear-gradient(135deg, var(--accent-br), var(--accent)); box-shadow: 0 0 10px var(--glow); }
+  .brand .uname { font-size: 11px; font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
   #exp { display: none; }
   .counter { font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 700; color: var(--accent-br); padding: 3px 9px; border-radius: 6px; background: rgba(25,227,106,.08); border: 1px solid var(--line-2); }
 
@@ -369,52 +302,44 @@
 <!-- ===================== MENU ===================== -->
 <div id="menu" class="closed gone x-left y-middle">
 
-  <!-- LEFT RAIL -->
-  <div class="rail">
-    <div class="rail-brand">M</div>
-    <div class="rail-sep"></div>
-    <!-- #cats-wrap is the vertical category rail; engine toggles .hidden -->
-    <div class="cats-wrap hidden" id="cats-wrap">
-      <div class="cats" id="cats"><div class="cat-ind" id="cat-ind"></div></div>
-    </div>
-    <div class="rail-avatar" id="avatar">M</div>
-  </div>
-
-  <!-- RIGHT CONTENT -->
-  <div class="content">
-    <div class="chead">
+  <!-- BANNER (main menu) -->
+  <div class="banner">
+    <img id="banner-img" alt="" decoding="async">
+    <div class="banner-top hidden"><span id="exp-badge">N/A</span></div>
+    <div class="banner-bottom">
       <div class="path" id="path"></div>
       <div class="title" id="title">Main Menu</div>
-      <div class="accent-tick"></div>
-    </div>
-
-    <!-- kept for the engine, visually hidden -->
-    <img id="banner-img" alt="" decoding="async">
-    <div class="banner-top"><span id="exp-badge">N/A</span></div>
-
-    <div class="viewport" id="viewport">
-      <div class="track" id="track">
-        <div class="hl" id="hl"></div>
-        <div class="rows" id="rows"></div>
-      </div>
-      <div class="sbar" id="sbar"><div id="thumb"></div></div>
-    </div>
-
-    <div class="info">
-      <div class="desc"><i class="ph ph-info"></i><span id="desc"></span></div>
-      <div class="meta hidden" id="meta"></div>
-    </div>
-
-    <div class="footer">
-      <span class="uname" id="user">Menu ni Manok</span><span id="exp">Expires N/A</span>
-      <div class="hints">
-        <span><span class="kc">↑↓</span></span>
-        <span><span class="kc">↵</span></span>
-        <span><span class="kc">⌫</span></span>
-      </div>
-      <div class="counter" id="counter">0/0</div>
     </div>
   </div>
+
+  <!-- TABS -->
+  <div class="cats-wrap hidden" id="cats-wrap">
+    <div class="cats" id="cats"><div class="cat-ind" id="cat-ind"></div></div>
+  </div>
+
+  <!-- LIST -->
+  <div class="viewport" id="viewport">
+    <div class="track" id="track">
+      <div class="hl" id="hl"></div>
+      <div class="rows" id="rows"></div>
+    </div>
+    <div class="sbar" id="sbar"><div id="thumb"></div></div>
+  </div>
+
+  <!-- INFO (desc hidden; meta shown for player stats) -->
+  <div class="desc"><i class="ph ph-info"></i><span id="desc"></span></div>
+  <div class="meta hidden" id="meta"></div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="brand"><span class="bm">M</span><span class="uname" id="user">Menu ni Manok</span><span id="exp">Expires N/A</span></div>
+    <div class="hints">
+      <span><span class="kc">↑↓</span></span><span><span class="kc">↵</span></span><span><span class="kc">⌫</span></span>
+    </div>
+    <div class="counter" id="counter">0/0</div>
+  </div>
+
+  <span id="avatar" class="hidden">M</span>
 </div>
 
 <div id="notifs"></div>
@@ -507,31 +432,6 @@
       case "slider": case "slider-checkbox": return "ph ph-sliders-horizontal";
       default: return "ph ph-lightning";
     }
-  }
-
-  /* icon for a category rail item, derived from its label (display-only, not game data) */
-  function catIcon(label) {
-    const s = String(label || "").toLowerCase();
-    const map = [
-      [/self|player|local|\bme\b|main/,              "ph ph-user"],
-      [/appear|outfit|\bped\b|model|cloth|skin/,     "ph ph-t-shirt"],
-      [/weapon|\bgun\b|combat|aim|shoot/,            "ph ph-crosshair"],
-      [/vehicle|\bcar\b|ride|auto/,                  "ph ph-car-profile"],
-      [/move|speed|\brun\b|jump|stamina/,            "ph ph-person-simple-run"],
-      [/tele|world|\bmap\b|location|waypoint/,       "ph ph-map-pin"],
-      [/online|server|network|session/,             "ph ph-globe"],
-      [/troll|\bfun\b|prank/,                        "ph ph-smiley"],
-      [/protect|god|defen|immun|shield/,             "ph ph-shield-check"],
-      [/visual|\besp\b|radar|\bhud\b/,               "ph ph-eye"],
-      [/money|bank|cash|econom/,                     "ph ph-currency-circle-dollar"],
-      [/bypass|exploit|trigger|inject/,              "ph ph-wrench"],
-      [/setting|config|option/,                      "ph ph-gear-six"],
-      [/misc|other|extra|util/,                      "ph ph-dots-three-outline"],
-      [/spawn|object|\bprop\b/,                      "ph ph-cube"],
-      [/anim|dance|emote/,                           "ph ph-person-arms-spread"],
-    ];
-    for (const m of map) if (m[0].test(s)) return m[1];
-    return "ph ph-squares-four";
   }
 
   /* ===================== MENU RENDER ===================== */
@@ -657,6 +557,7 @@
 
   function renderHeader() {
     const p = arr(state.path);
+    document.getElementById("menu").classList.toggle("sub", p.length > 0);
     const crumbs = ["Manok"].concat(p.slice(0, -1));
     $("path").innerHTML = crumbs.map(esc).join(`<i class="ph ph-caret-right"></i>`);
     $("title").textContent = p.length ? p[p.length - 1] : "Main Menu";
@@ -668,8 +569,7 @@
       cats.forEach((c, i) => {
         const d = document.createElement("div");
         d.className = "cat" + (i === state.categoryIndex ? " active" : "");
-        d.title = c.label || "";
-        d.innerHTML = '<i class="' + catIcon(c.label) + '"></i>';
+        d.textContent = c.label;
         box.appendChild(d);
       });
       const wasHidden = wrap.classList.contains("hidden");
