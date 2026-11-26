@@ -115,10 +115,12 @@
   /* ---------- tabs (underline) ---------- */
   .cats-wrap { padding: 10px 14px 0; }
   #menu.sub .cats-wrap { padding-top: 10px; }
-  .cats { position: relative; display: flex; gap: 6px; border-bottom: 1px solid var(--line); }
-  .cat-ind { position: absolute; left: 0; bottom: -1px; top: auto; height: 2px; background: var(--accent); border-radius: 2px; box-shadow: 0 0 10px var(--glow); transition: transform .22s var(--ease), width .22s var(--ease); will-change: transform; }
-  .cat { position: relative; z-index: 1; flex: 0 1 auto; min-width: 0; padding: 9px 7px 10px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10.5px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--text-3); transition: color .18s; }
+  .cats { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 3px; border-bottom: 1px solid var(--line); }
+  .cat-ind { display: none; }  /* per-tab underline used instead, so tabs can wrap */
+  .cat { position: relative; z-index: 1; flex: 0 0 auto; padding: 8px 8px 9px; text-align: center; white-space: nowrap; font-size: 10px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; color: var(--text-3); transition: color .18s; }
+  .cat::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -1px; height: 2px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 8px var(--glow); opacity: 0; transition: opacity .18s; }
   .cat.active { color: var(--text); }
+  .cat.active::after { opacity: 1; }
 
   /* ---------- list ---------- */
   .viewport { position: relative; max-height: calc(var(--row-h) * var(--rows) + 10px); overflow: hidden; }
